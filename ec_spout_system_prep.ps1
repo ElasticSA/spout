@@ -26,24 +26,23 @@ If (-Not (Get-Package -Name Npcap -ErrorAction SilentlyContinue)) {
 $sysmon_temp_dir = "C:\Windows\Temp\ec_spout_sysmon"
 $sysmon_installer_url = "https://download.sysinternals.com/files/Sysmon.zip"
 $sysmon_config_url = "https://raw.githubusercontent.com/olafhartong/sysmon-modular/master/sysmonconfig.xml"
-$sysmon_config = "C:\Windows\sysmon.xml
-"
+$sysmon_config = "C:\Windows\sysmon.xml"
 
 $ignore = (New-Item -Force -ItemType Directory -Path "$sysmon_temp_dir")
 
 If (Test-Path "C:\Windows\Sysmon64.exe") {
     echo "Unistalling Sysmon..."
-    Start-Process -WorkingDirectory "C:\Windows" -FilePath "sysmon64" -ArgumentList "-u" -Wait -NoNewWindow
+    Start-Process -WorkingDirectory "C:\Windows" -FilePath "Sysmon64" -ArgumentList "-u" -Wait -NoNewWindow
 }
 
 echo "Installing Sysmon..."
 
-Invoke-WebRequest -Uri $sysmon_config_url -OutFile $sysmon_config
-Invoke-WebRequest -Uri $sysmon_installer_url -OutFile $sysmon_temp_dir/Sysmon.zip
+Invoke-WebRequest -UseBasicParsing -Uri $sysmon_config_url -OutFile $sysmon_config
+Invoke-WebRequest -UseBasicParsing -Uri $sysmon_installer_url -OutFile "$sysmon_temp_dir/Sysmon.zip"
 
-Expand-Archive -Path $sysmon_temp_dir/Sysmon.zip -DestinationPath $sysmon_temp_dir
+Expand-Archive -Path $sysmon_temp_dir/Sysmon.zip -DestinationPath $sysmon_temp_dir -Force
 
-Start-Process -WorkingDirectory $sysmon_temp_dir -FilePath "sysmon64" -ArgumentList "-accepteula -i $sysmon_config" -Wait -NoNewWindow
+Start-Process -FilePath "Sysmon64.exe" -WorkingDirectory "$sysmon_temp_dir" -ArgumentList "-accepteula -i $sysmon_config" -Wait -NoNewWindow
 
 Remove-Item -Path $sysmon_temp_dir -Recurse -Force -ErrorAction SilentlyContinue
 echo "Sysmon Installation Complete"
