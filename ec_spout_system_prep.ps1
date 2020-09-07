@@ -10,7 +10,7 @@ cd $PSScriptRoot
 Install-Module powershell-yaml
 
 # Install npcap (reboot before installing packetbeat for the first time!)
-If (-Not (Get-Package -Name Npcap)) {
+If (-Not (Get-Package -Name Npcap -ErrorAction SilentlyContinue)) {
     $dl_dir = "$env:USERPROFILE\Downloads"
     $npcap_installer = ("$dl_dir\" + [System.io.Path]::GetFileName($npcap_url))
 
