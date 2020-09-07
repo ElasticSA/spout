@@ -11,7 +11,7 @@ $ignore = (New-Item -Force -ItemType Directory -Path "$download_dir\logs")
 
 If (Get-WmiObject -Class Win32_Product -Filter ("Vendor = 'Elastic' AND Name LIKE '%${beat_name}%' AND Version = '$beat_ver'")) {
     echo "$beat_name ($beat_ver) is already installed"
-    return
+    exit
 }
 
 $app = Get-WmiObject -Class Win32_Product -Filter ("Vendor = 'Elastic' AND Name LIKE '%${beat_name}%'")
@@ -48,7 +48,7 @@ Start-Process msiexec.exe -ArgumentList $MSIArguments -WorkingDirectory $downloa
     'keystore','create','--force'
 )
 
-# Elastic skylab will reconfigure and start the beat at startup
+# EC Spout will reconfigure and start the beat at startup
 Stop-Service -Name $beat_name
 Set-Service -Name $beat_name -StartupType Manual
  

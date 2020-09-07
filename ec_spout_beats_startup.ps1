@@ -38,8 +38,7 @@ If (
     [string]::IsNullOrWhiteSpace($es_url) -or
     [string]::IsNullOrWhiteSpace($env_config.beats_auth)
 ) {
-    echo "Configuration missing"
-    exit 
+    Write-Error "Configuration missing" -ErrorAction Stop 
 }
 
 function InitialiseBeat ([string]$beat_name)

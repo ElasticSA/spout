@@ -4,6 +4,7 @@ $npcap_url = "https://nmap.org/npcap/dist/npcap-0.9997.exe"
 
 $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 
+cd $PSScriptRoot
 
 # Install PS YAML parser
 Install-Module powershell-yaml
@@ -20,6 +21,9 @@ If (-Not (Get-Package -Name Npcap)) {
 }
 
 # Configure EC spout scripts
+
+Unblock-File -Path ec_spout_agent_startup.ps1
+Unblock-File -Path ec_spout_beats_startup.ps1
 
 # beats
 $action = New-ScheduledTaskAction `

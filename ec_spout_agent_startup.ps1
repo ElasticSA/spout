@@ -4,7 +4,7 @@ $ErrorActionPreference = "Stop"
 
 cd $PSScriptRoot
 
-#Start-Transcript -Path ec_spout_agent_startup.log -Append
+Start-Transcript -Path ec_spout_agent_startup.log -Append
 
 function b64dec ([string]$str)
 {
@@ -38,8 +38,7 @@ If (
     [string]::IsNullOrWhiteSpace($kn_url) -or
     [string]::IsNullOrWhiteSpace($env_config.agent_enroll_token)
 ) {
-    echo "Configuration missing"
-    exit 
+    Write-Error "Configuration missing" -ErrorAction Stop 
 }
 
 $stack_ver = $env_config.stack_version
@@ -48,7 +47,7 @@ $agent_zip_url = "https://artifacts.elastic.co/downloads/beats/elastic-agent/$ag
 $agent_dir = "C:\Program Files\Elastic\Agent\$stack_ver"
 $download_dir = "C:\Program Files\Elastic\Downloads"
 
-echo $agent_zip_url
+#echo $agent_zip_url
 
 $ignore = (New-Item -Force -ItemType Directory -Path "$download_dir\logs")
 
@@ -81,3 +80,5 @@ Unblock-File -Path "$agent_dir\install-service-elastic-agent.ps1"
 # Not coming up cleanly first time, so we give it a kick!
 Start-Sleep -s 30
 Restart-Service -Name elastic-agent -Force 
+
+Stop-Transcript
