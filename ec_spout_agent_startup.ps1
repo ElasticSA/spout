@@ -51,7 +51,7 @@ $download_dir = "C:\Program Files\Elastic\Downloads"
 
 $ignore = (New-Item -Force -ItemType Directory -Path "$download_dir\logs")
 
-Get-ChildItem "C:\Program Files\Elastic\Agent\" -Attributes Directory | ForEach-Object {
+Get-ChildItem "C:\Program Files\Elastic\Agent\" -Attributes Directory -ErrorAction SilentlyContinue | ForEach-Object {
     $uninst = "C:\Program Files\Elastic\Agent\$_\uninstall-service-elastic-agent.ps1"
     If (Test-Path -Path "$uninst") {
         echo "Uninstalling existing: $_"
