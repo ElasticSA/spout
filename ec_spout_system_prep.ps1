@@ -6,12 +6,14 @@ $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 
 cd $PSScriptRoot
 
+$dl_dir = "$env:USERPROFILE\Downloads"
+
 # Install PS YAML parser
 Install-Module powershell-yaml
 
 # Install npcap (reboot before installing packetbeat for the first time!)
 If (-Not (Get-Package -Name Npcap -ErrorAction SilentlyContinue)) {
-    $dl_dir = "$env:USERPROFILE\Downloads"
+
     $npcap_installer = ("$dl_dir\" + [System.io.Path]::GetFileName($npcap_url))
 
     Invoke-WebRequest -UseBasicParsing -Uri $npcap_url -OutFile $npcap_installer
@@ -19,6 +21,32 @@ If (-Not (Get-Package -Name Npcap -ErrorAction SilentlyContinue)) {
     # The free version of the npcap installer does not allow non-interactive installs
     & $npcap_installer
 }
+
+# Install sysmon
+$sysmon_temp_dir = "C:\Windows\Temp\ec_spout_sysmon"
+$sysmon_installer_url = "https://download.sysinternals.com/files/Sysmon.zip"
+$sysmon_config_url = "https://raw.githubusercontent.com/olafhartong/sysmon-modular/master/sysmonconfig.xml"
+$sysmon_config = "C:\Windows\sysmon.xml
+"
+
+$ignore = (New-Item -Force -ItemType Directory -Path "$sysmon_temp_dir")
+
+If (Test-Path "C:\Windows\Sysmon64.exe") {
+    echo "Unistalling Sysmon..."
+    Start-Process -WorkingDirectory "C:\Windows" -FilePath "sysmon64" -ArgumentList "-u" -Wait -NoNewWindow
+}
+
+echo "Installing Sysmon..."
+
+Invoke-WebRequest -Uri $sysmon_config_url -OutFile $sysmon_config
+Invoke-WebRequest -Uri $sysmon_installer_url -OutFile $sysmon_temp_dir/Sysmon.zip
+
+Expand-Archive -Path $sysmon_temp_dir/Sysmon.zip -DestinationPath $sysmon_temp_dir
+
+Start-Process -WorkingDirectory $sysmon_temp_dir -FilePath "sysmon64" -ArgumentList "-accepteula -i $sysmon_config" -Wait -NoNewWindow
+
+Remove-Item -Path $sysmon_temp_dir -Recurse -Force -ErrorAction SilentlyContinue
+echo "Sysmon Installation Complete"
 
 # Configure EC spout scripts
 
