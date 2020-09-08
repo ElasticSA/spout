@@ -1,5 +1,7 @@
  # Run once to prepare a system
 
+# Note one Win10: First run:  Set-ExecutionPolicy RemoteSigned -Scope LocalMachine -Force
+ 
 $npcap_url = "https://nmap.org/npcap/dist/npcap-0.9997.exe"
 
 $ErrorActionPreference = "Stop"
@@ -42,13 +44,14 @@ Invoke-WebRequest -UseBasicParsing -Uri $sysmon_installer_url -OutFile "$sysmon_
 
 Expand-Archive -Path $sysmon_temp_dir/Sysmon.zip -DestinationPath $sysmon_temp_dir -Force
 
-Start-Process -FilePath "Sysmon64.exe" -WorkingDirectory "$sysmon_temp_dir" -ArgumentList "-accepteula -i $sysmon_config" -Wait -NoNewWindow
+Start-Process -FilePath "$sysmon_temp_dir\Sysmon64.exe" -WorkingDirectory "$sysmon_temp_dir" -ArgumentList "-accepteula -i $sysmon_config" -Wait -NoNewWindow
 
 Remove-Item -Path $sysmon_temp_dir -Recurse -Force -ErrorAction SilentlyContinue
 echo "Sysmon Installation Complete"
 
 # Configure EC spout scripts
 
+Unblock-File -Path beats_install.ps1
 Unblock-File -Path ec_spout_agent_startup.ps1
 Unblock-File -Path ec_spout_beats_startup.ps1
 
