@@ -1,6 +1,8 @@
  # Run once to prepare a system
 
-# Note one Win10: First run:  Set-ExecutionPolicy RemoteSigned -Scope LocalMachine -Force
+# Note one Win10: First run:  
+#  Set-ExecutionPolicy RemoteSigned -Scope LocalMachine -Force
+#  Unblock-File -Path .\ec_spout_system_prep.ps1
  
 $npcap_url = "https://nmap.org/npcap/dist/npcap-0.9997.exe"
 
