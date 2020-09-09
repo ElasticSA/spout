@@ -1,38 +1,48 @@
 #!/bin/sh
 
-SCRIPTDIR=$(basename $0)
+SCRIPTDIR=$(dirname $0)
 if [ "." = "$SCRIPTDIR" ]; then
   SCRIPTDIR=$(pwd)
 fi
 
 cd $SCRIPTDIR
 
-install_on_Debian()
+install_with_apt()
 {
   DEBIAN_FRONTEND=noninteractive apt-get -y install lsb-release curl jq
 }
 
-install_on_Ubuntu() { install_on_Debian; }
-
-install_on_CentOS()
+install_with_yum()
 {
-  yum -y install lsb-release curl jq
+  yum -y install redhat-lsb-core curl jq
 }
 
-install_on_RHEL() { install_on_CentOS; }
 
 
 #####################################################
 
-install_on_$(lsb_release -is)
+if [ -x "$(which apt-get)" ]; then
+  install_with_apt
+fi
+
+if [ -x "$(which yum)" ]; then
+  install_with_yum
+fi
 
 cat >/etc/systemd/system/ec_spout_beats.service <<_EOM_
 [Unit]
 Description=EC Spout: Initialise Beats 
+Wants=network-online.target
+After=network-online.target
 
 [Service]
 Type=oneshot
+RemainAfterExit=yes
 ExecStart=$SCRIPTDIR/ec_spout_beats_startup.sh
+
+#CentOS' systemd does not allow this (too old I guess)
+#Restart=on-failure
+#RestartSec=60
 
 [Install]
 WantedBy=multi-user.target
@@ -42,10 +52,17 @@ _EOM_
 cat >/etc/systemd/system/ec_spout_agent.service <<_EOM_
 [Unit]
 Description=EC Spout: Initialise Agent
+Wants=network-online.target
+After=network-online.target
 
 [Service]
 Type=oneshot
+RemainAfterExit=yes
 ExecStart=$SCRIPTDIR/ec_spout_agent_startup.sh
+
+#CentOS' systemd does not allow this (too old I guess)
+#Restart=on-failure
+#RestartSec=60
 
 [Install]
 WantedBy=multi-user.target
@@ -54,5 +71,5 @@ _EOM_
 
 systemctl daemon-reload
 
-systemctl enable ec_spout_beats_startup
-systemctl enable ec_spout_agent_startup
+systemctl enable ec_spout_beats.service
+systemctl enable ec_spout_agent.service
