@@ -29,13 +29,18 @@ install_on_Debian() {
     curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add -
   
     echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" \
-      > /etc/apt/sources.list.d/elastic-7.x.list >/dev/null
+      >/etc/apt/sources.list.d/elastic-7.x.list
     
     apt-get update
   fi
+    
+  if [ "$1" = "remove" ]; then
+    DEBIAN_FRONTEND=noninteractive apt-get -y purge $BEAT_NAME
+    rm -rf "/etc/$BEAT_NAME"
+  fi
 
   test -f /etc/$BEAT_NAME/$BEAT_NAME.yml && 
-    mv /etc/$BEAT_NAME/$BEAT_NAME.yml /etc/$BEAT_NAME/$BEAT_NAME.old.yml 
+    mv /etc/$BEAT_NAME/$BEAT_NAME.yml /etc/$BEAT_NAME/$BEAT_NAME.old.yml
     
   DEBIAN_FRONTEND=noninteractive apt-get --allow-downgrades -y -o Dpkg::Options::="--force-confask,confnew,confmiss" install $BEAT_NAME=$STACK_VER
   
@@ -68,6 +73,11 @@ _EOF_
     #yum repolist
   fi
 
+  if [ "$1" = "remove" ]; then
+    yum -y remove $BEAT_NAME
+    rm -rf "/etc/$BEAT_NAME"
+  fi
+  
   test -f /etc/$BEAT_NAME/$BEAT_NAME.yml && 
     mv /etc/$BEAT_NAME/$BEAT_NAME.yml /etc/$BEAT_NAME/$BEAT_NAME.old.yml 
     
@@ -86,7 +96,7 @@ if [ -x "$(which $BEAT_NAME)" ]; then
 
   CURRENT_VER=$($BEAT_NAME version | sed -Ee 's/.*version (\S*) .*/\1/')
   if [ "$CURRENT_VER" != "$STACK_VER" ]; then
-    install_on_$(lsb_release -is)
+    install_on_$(lsb_release -is) remove
   fi
   
 else

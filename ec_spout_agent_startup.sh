@@ -55,11 +55,16 @@ install_on_Debian() {
     curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add -
   
     echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" \
-      > /etc/apt/sources.list.d/elastic-7.x.list >/dev/null
+      > /etc/apt/sources.list.d/elastic-7.x.list
     
     apt-get update
   fi
-    
+
+  if [ "$1" = "remove" ]; then
+    DEBIAN_FRONTEND=noninteractive apt-get -y purge elastic-agent
+    rm -rf "/etc/elastic-agent"
+  fi
+  
   DEBIAN_FRONTEND=noninteractive apt-get --allow-downgrades -y install elastic-agent=$STACK_VER
   
   
@@ -90,6 +95,11 @@ _EOF_
     #yum repolist
   fi
 
+  if [ "$1" = "remove" ]; then
+    yum -y remove elastic-agent
+    rm -rf "/etc/elastic-agent"
+  fi
+  
   yum -y install elastic-agent-$STACK_VER
   
 } # End: install_on_CentOS
@@ -103,7 +113,7 @@ if [ -x "$(which elastic-agent)" ]; then
 
   CURRENT_VER=$(elastic-agent version | sed -Ee 's/.*version (\S*) .*/\1/')
   if [ "$CURRENT_VER" != "$STACK_VER" ]; then
-    install_on_$(lsb_release -is)
+    install_on_$(lsb_release -is) remove
   fi
   
 else
