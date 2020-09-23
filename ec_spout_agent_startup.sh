@@ -22,13 +22,8 @@ done
 
 SKYTAP_DATA=$(curl -qs http://gw/skytap||_fail "curl skytap failed")
 
-ENV_CONFIG=$(echo -e $(echo $SKYTAP_DATA | jq .configuration_user_data))
-ENV_CONFIG="${ENV_CONFIG%\"}"
-ENV_CONFIG="${ENV_CONFIG#\"}"
-
-VM_CONFIG=$(echo -e $(echo $SKYTAP_DATA | jq .user_data))
-VM_CONFIG="${VM_CONFIG%\"}"
-VM_CONFIG="${VM_CONFIG#\"}"
+ENV_CONFIG=$(echo -e $(echo $SKYTAP_DATA | jq -r .configuration_user_data))
+VM_CONFIG=$(echo -e $(echo $SKYTAP_DATA | jq -r .user_data))
 
 STACK_VER=$(echo "$ENV_CONFIG" | sed -Ene 's/^stack_version:\s*(.*)$/\1/ p')
 CLOUD_ID=$(echo "$ENV_CONFIG" | sed -Ene 's/^cloud_id:\s*(.*)$/\1/ p')
