@@ -1,5 +1,18 @@
+#
+# Install and Enroll the Elastic Agent on a Windows system.
+#
+# This script takes the following arguments:
+# - beat_name: The name of the beat to configure (metricbeat, filebeat, winlogbeat, etc)
+#
+# This script reads and uses the following settings read from a file called
+# "elastic_stack.config":
+# - CLOUD_ID: Elastic Cloud (or ECE) deployment ID to connect to
+# - STACK_VERSION: The version to install. e.g. 7.9.2
+# - BEATS_AUTH: The credentials needed to connect to Elasticsearch
+# Please create this^ file before running this script 
+
 Param(
-    [parameter(Position=0, Mandatory=$true)][string]$beat_name,
+    [parameter(Position=0, Mandatory=$true)][string]$beat_name
 )
 
 $ErrorActionPreference = "Stop"
@@ -72,3 +85,4 @@ If ( (-Not $check_alias.Contains($beat_name)) -or $($config.BEATS_FORCE_SETUP).C
         'setup'
     )
 }
+ 

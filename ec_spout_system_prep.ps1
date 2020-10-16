@@ -1,4 +1,4 @@
- # Run once to prepare a system
+# Run once to prepare a EC Spout VM image
 
 # Note on Win10: First run:  
 #  Set-ExecutionPolicy RemoteSigned -Scope LocalMachine -Force
@@ -67,6 +67,8 @@ $action = New-ScheduledTaskAction `
 $trigger =  New-ScheduledTaskTrigger -AtStartup -RandomDelay 00:00:30
 $settings = New-ScheduledTaskSettingsSet `
     -ExecutionTimeLimit 00:20:00 -RestartCount 3 -RestartInterval 00:01:00
+
+Unregister-ScheduledTask -TaskName "ec_spout_beats_startup" -Confirm -ErrorAction SilentlyContinue
 Register-ScheduledTask -Force `
     -TaskName "ec_spout_beats_startup" -Description "Elastic Cloud Spout: Initialise all beats at startup" `
     -Action $action -Trigger $trigger -Settings $settings -User "System"
@@ -78,6 +80,9 @@ $action = New-ScheduledTaskAction `
 $trigger =  New-ScheduledTaskTrigger -AtStartup -RandomDelay 00:00:30
 $settings = New-ScheduledTaskSettingsSet `
     -ExecutionTimeLimit 00:20:00 -RestartCount 3 -RestartInterval 00:01:00
+
+Unregister-ScheduledTask -TaskName "ec_spout_agent_startup" -Confirm -ErrorAction SilentlyContinue
 Register-ScheduledTask -Force `
     -TaskName "ec_spout_agent_startup" -Description "Elastic Cloud Spout: Initialise agent at startup" `
     -Action $action -Trigger $trigger -Settings $settings -User "System" 
+ 

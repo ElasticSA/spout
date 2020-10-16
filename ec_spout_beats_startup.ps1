@@ -1,4 +1,7 @@
- 
+#
+# Run at startup by Task Scheduler with EC Spout env. on Skytap
+#
+
 $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 
 

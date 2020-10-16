@@ -1,7 +1,8 @@
 # So that the other scripts can be used outside SkyTap
 # they take their config from an 'elastic_stack.config' file
 # This script generates that file from the skytap environment metadata
-# The goal being to allow the other script to be useful for other automation environments
+# The goal being to allow the other scripts to be useful for other automation environments
+# by decoupling them from anything Skytap specific
 
 $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 

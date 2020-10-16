@@ -1,3 +1,6 @@
+#
+# Utility functions
+#
 
 function b64dec ([string]$str)
 {
