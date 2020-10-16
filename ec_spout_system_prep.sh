@@ -7,6 +7,8 @@ fi
 
 cd $SCRIPTDIR
 
+YQ_PKG_URL="https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_amd64"
+
 install_with_apt()
 {
   DEBIAN_FRONTEND=noninteractive apt-get -y install lsb-release curl jq
@@ -73,3 +75,6 @@ systemctl daemon-reload
 
 systemctl enable ec_spout_beats.service
 systemctl enable ec_spout_agent.service
+
+curl -qL "$YQ_PKG_URL" -o /usr/local/bin/yq
+chmod +x /usr/local/bin/yq

@@ -1,5 +1,5 @@
 #
-# Install and Enroll the Elastic Agent on a Windows system.
+# Install an Elastic Beat on a Windows system.
 # This script takes the following arguments:
 # - beat_name: The name of the beat to install (metricbeat, filebeat, winlogbeat, etc)
 # - beat_ver: The version to install. e.g. 7.9.2

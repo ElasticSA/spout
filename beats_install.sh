@@ -1,15 +1,16 @@
 #!/bin/bash
-
-# Install givn beat and version
+#
+# Install an Elastic Beat on a Windows system.
+# This script takes the following arguments:
+# 1. BEAT_NAME: The name of the beat to install (metricbeat, filebeat, winlogbeat, etc)
+# 2. STACK_VERSION: The version to install. e.g. 7.9.2
+# 
 # Will replace any old/new version already installed
 
 BEAT_NAME=$1
 STACK_VER=$2
 
-_fail() {
-  echo $@ >&2
-  exit 1
-}
+. ./utilities.sh
 
 # Test that programmes we are going to use are installed
 for c in curl lsb_release; do
@@ -95,6 +96,7 @@ if [ -x "$(which $BEAT_NAME)" ]; then
 
   CURRENT_VER=$($BEAT_NAME version | sed -Ee 's/.*version (\S*) .*/\1/')
   if [ "$CURRENT_VER" != "$STACK_VER" ]; then
+    systemctl stop $BEAT_NAME
     install_on_$(lsb_release -is) remove
   fi
   
@@ -104,6 +106,3 @@ fi
 
 $BEAT_NAME -c "$BEAT_NAME.example.yml" keystore create --force
 
-# Will be started by the ec spout startup script
-systemctl disable $BEAT_NAME
-systemctl stop $BEAT_NAME

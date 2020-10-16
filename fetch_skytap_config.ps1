@@ -31,4 +31,4 @@ $config = @{
     AGENT_ENROLL_TOKEN = $env_config.agent_enroll_token;
 }
 
-$config.GetEnumerator() | ForEach-Object { "$($_.Name) = $($_.Value)" } | Out-File -FilePath elastic_stack.config -Encoding utf8 -Force
+$config.GetEnumerator() | ForEach-Object { "$($_.Name)=$($_.Value)" } | Out-File -FilePath elastic_stack.config -Encoding utf8 -Force

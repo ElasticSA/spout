@@ -1,5 +1,5 @@
 #
-# Install and Enroll the Elastic Agent on a Windows system.
+# Configure an Elastic Beat on a Windows system.
 #
 # This script takes the following arguments:
 # - beat_name: The name of the beat to configure (metricbeat, filebeat, winlogbeat, etc)
@@ -80,7 +80,7 @@ echo $check_alias
 
 If ( (-Not $check_alias.Contains($beat_name)) -or $($config.BEATS_FORCE_SETUP).Contains($beat_name) ) {
     & $beat_exe @(
-    '--path.config', "$beat_config_dir",
+        '--path.config', "$beat_config_dir",
         '--path.data', "$beat_config_dir\data",
         'setup'
     )
