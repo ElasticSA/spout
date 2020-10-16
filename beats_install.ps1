@@ -1,4 +1,4 @@
- Param(
+Param(
     [parameter(Position=0, Mandatory=$true)][string]$beat_name,
     [parameter(Position=1, Mandatory=$true)][string]$beat_ver,
     [string]$download_dir = "C:\Program Files\Elastic\Downloads"
@@ -6,6 +6,8 @@
 
 $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 
+
+#. ".\utilities.ps1"
 
 $ignore = (New-Item -Force -ItemType Directory -Path "$download_dir\logs")
 
@@ -48,7 +50,4 @@ Start-Process msiexec.exe -ArgumentList $MSIArguments -WorkingDirectory $downloa
     'keystore','create','--force'
 )
 
-# EC Spout will reconfigure and start the beat at startup
-Stop-Service -Name $beat_name
-Set-Service -Name $beat_name -StartupType Manual
  

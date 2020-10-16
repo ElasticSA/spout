@@ -52,6 +52,7 @@ initialise_beat()
     cp -f /etc/$BEAT_NAME/$BEAT_NAME.example.yml /etc/$BEAT_NAME/$BEAT_NAME.yml
     
     CONF_SNIPPET=$(cat <<'_EOM_'
+# *** Scripted content appended here ***
 
 output.elasticsearch: ~
 

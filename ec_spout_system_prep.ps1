@@ -1,6 +1,6 @@
  # Run once to prepare a system
 
-# Note one Win10: First run:  
+# Note on Win10: First run:  
 #  Set-ExecutionPolicy RemoteSigned -Scope LocalMachine -Force
 #  Unblock-File -Path .\ec_spout_system_prep.ps1
  
@@ -53,9 +53,12 @@ echo "Sysmon Installation Complete"
 
 # Configure EC spout scripts
 
+Unblock-File -Path agent_install+enroll.ps1
+Unblock-File -Path beats_configure.ps1
 Unblock-File -Path beats_install.ps1
 Unblock-File -Path ec_spout_agent_startup.ps1
 Unblock-File -Path ec_spout_beats_startup.ps1
+Unblock-File -Path fetch_skytap_config.ps1
 
 # beats
 $action = New-ScheduledTaskAction `

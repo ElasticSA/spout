@@ -81,7 +81,6 @@ _EOF_
   test -f /etc/$BEAT_NAME/$BEAT_NAME.yml && 
     mv /etc/$BEAT_NAME/$BEAT_NAME.yml /etc/$BEAT_NAME/$BEAT_NAME.old.yml 
     
-  # Install our list of beats
   yum -y install $BEAT_NAME-$STACK_VER
   
   cp /etc/$BEAT_NAME/$BEAT_NAME.yml /etc/$BEAT_NAME/$BEAT_NAME.example.yml
