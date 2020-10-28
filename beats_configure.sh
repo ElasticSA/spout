@@ -82,4 +82,13 @@ if echo "$CHECK_ALIAS"|grep -qv "$BEAT_NAME-$STACK_VERSION" ; then
     $BEAT_NAME setup || echo "FAILED: $BEAT_NAME setup"
 fi
 
+case "$BEAT_NAME" in
+"metricbeat")
+    metricbeat modules enable system linux 
+;;
+"filebeat")
+    filebeat modules enable system iptables 
+;;
+esac
+
 

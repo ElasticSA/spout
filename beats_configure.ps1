@@ -20,6 +20,10 @@ $ErrorActionPreference = "Stop"
 
 . ".\utilities.ps1"
 
+# 
+# Read script configuration file
+# and setup variables
+#
 $config = Get-Content -Path "elastic_stack.config" | Out-String | ConvertFrom-StringData
 
 $cloud_info = (b64dec($config.CLOUD_ID.Split(':')[1])).Split('$')
@@ -30,6 +34,9 @@ $stack_version = $config.STACK_VERSION
 $beat_config_dir = "C:\ProgramData\Elastic\Beats\$beat_name"
 $beat_exe = "C:\Program Files\Elastic\Beats\$stack_version\$beat_name\$beat_name.exe"
 
+#
+# Check variables
+#
 If (
     [string]::IsNullOrWhiteSpace($stack_version) -or 
     [string]::IsNullOrWhiteSpace($es_url) -or
@@ -38,8 +45,14 @@ If (
     Write-Error "Configuration missing" -ErrorAction Stop 
 }
 
+#
+# Overwrite any existing beat config. to always start from a known state
+#
 Copy-Item -Path "$beat_config_dir\$beat_name.example.yml" -Destination "$beat_config_dir\$beat_name.yml"
 
+#
+# This is the beat config we will append to the config file
+#
 $config_snippet = @'
 # *** Scripted content appended here ***
 
@@ -57,6 +70,9 @@ xpack.monitoring.enabled: true
 
 '@
 
+#
+# Add Cloud connection and auth info to the beats keystore
+#
 echo $config.CLOUD_ID | & $beat_exe @(
     '--path.config', "$beat_config_dir",
     '--path.data', "$beat_config_dir\data",
@@ -68,16 +84,24 @@ echo $config.BEATS_AUTH | & $beat_exe @(
     'keystore', 'add', 'CLOUD_AUTH', '--stdin', '--force'
 )
 
-# Be sure to set the keystore values before adding to config!
+#
+# Now we append our config
+# After ensuring the keystore is setup ^
+#
 Add-Content -Path "$beat_config_dir\$beat_name.yml" -Value $config_snippet
 
+#
+# If this is a new beat (type+version) we need to run 'setup' at least once
 # If an alias for this beats version is found, we assume setup was already run
+#
+# Fetch Alias listings
 $headers = @{
     Authorization = "Basic " + (b64enc($config.BEATS_AUTH))
 }
 $check_alias = (Invoke-WebRequest -UseBasicParsing -Uri "$es_url/_cat/aliases/${beat_name}-${stack_version}" -Headers $headers).Content
 echo $check_alias
 
+# Run setup if alias is missing
 If ( (-Not $check_alias.Contains($beat_name)) -or $($config.BEATS_FORCE_SETUP).Contains($beat_name) ) {
     & $beat_exe @(
         '--path.config', "$beat_config_dir",
@@ -85,4 +109,25 @@ If ( (-Not $check_alias.Contains($beat_name)) -or $($config.BEATS_FORCE_SETUP).C
         'setup'
     )
 }
+
+# 
+# Enable Beat and OS specific integration modules
+#
+Switch ($beat_name){
+
+"metricbeat" {
+    & $beat_exe @(
+        '--path.config', "$beat_config_dir", '--path.data', "$beat_config_dir\data",
+        'modules', 'enable', 'system', 'windows'
+    )
+}
+
+"filebeat" {
+    & $beat_exe @(
+        '--path.config', "$beat_config_dir", '--path.data', "$beat_config_dir\data",
+        'modules', 'enable', 'microsoft'
+    )
+}
+
+} #Switch
  

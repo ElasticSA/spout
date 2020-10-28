@@ -31,6 +31,8 @@ if [ -x "$(which yum)" ]; then
   install_with_yum
 fi
 
+chmod +x *.sh
+
 cat >/etc/systemd/system/ec_spout_beats.service <<_EOM_
 [Unit]
 Description=EC Spout: Initialise Beats 

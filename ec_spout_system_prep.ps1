@@ -53,6 +53,7 @@ echo "Sysmon Installation Complete"
 
 # Configure EC spout scripts
 
+Unblock-File -Path utilities.ps1
 Unblock-File -Path agent_install+enroll.ps1
 Unblock-File -Path beats_configure.ps1
 Unblock-File -Path beats_install.ps1

@@ -32,7 +32,7 @@ for B in metricbeat auditbeat filebeat packetbeat; do
   echo "$(date) Initialising $B ($STACK_VERSION)"
   ./beats_configure.sh $B
   
-  echo "$(date) Starting $BEAT_NAME ($STACK_VERSION)"
-  systemctl restart $BEAT_NAME
+  echo "$(date) Starting $B ($STACK_VERSION)"
+  systemctl restart "$B"
   
 done
