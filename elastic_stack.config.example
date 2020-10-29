@@ -1,0 +1,6 @@
+# This is an example of the elastic_stack.config file that these scripts read from
+
+STACK_VERSION=7.9.3
+CLOUD_ID=My_Deployment:SGVsbG8gV29ybGQhCg==
+BEATS_AUTH=beats_agent:Qwerty123!
+AGENT_ENROLL_TOKEN=SGVsbG8gV29ybGQhCg==
