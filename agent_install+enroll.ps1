@@ -7,6 +7,10 @@
 # - AGENT_ENROLL_TOKEN: The Fleet Agent Enroll Token to enroll with
 # Please create this^ file before running this script 
 
+#
+# Reference: https://www.elastic.co/guide/en/ingest-management/current/elastic-agent-installation.html
+#
+
 $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 
 
@@ -14,6 +18,9 @@ cd $PSScriptRoot
 
 . ".\utilities.ps1"
 
+#
+# Grab the config settings
+#
 $config = Get-Content -Path "elastic_stack.config" | Out-String | ConvertFrom-StringData
 
 # Unpack Cloud ID
@@ -24,6 +31,7 @@ $kn_url = "https://$($cloud_info[2]).$($cloud_info[0].Replace(':9243', ''))"
 $stack_ver = $config.STACK_VERSION
 $agent_token = $config.AGENT_ENROLL_TOKEN
 
+# Check config variables
 If (
     [string]::IsNullOrWhiteSpace($stack_ver) -or 
     [string]::IsNullOrWhiteSpace($kn_url) -or
@@ -32,15 +40,16 @@ If (
     Write-Error "Configuration missing" -ErrorAction Stop 
 }
 
+# Prepare some common used strings
 $agent_zip = "elastic-agent-$stack_ver-windows-x86_64.zip"
 $agent_zip_url = "https://artifacts.elastic.co/downloads/beats/elastic-agent/$agent_zip"
 $agent_dir = "C:\Program Files\Elastic\Agent\$stack_ver"
 $download_dir = "C:\ProgramData\Elastic\Downloads"
 
-#echo $agent_zip_url
-
+# Ensure d/l dir exists
 $ignore = (New-Item -Force -ItemType Directory -Path "$download_dir")
 
+# Iterate through any existing agent install directories and uninstall them
 Get-ChildItem "C:\Program Files\Elastic\Agent\" -Attributes Directory -ErrorAction SilentlyContinue | ForEach-Object {
     $uninst = "C:\Program Files\Elastic\Agent\$_\uninstall-service-elastic-agent.ps1"
     If (Test-Path -Path "$uninst") {
@@ -49,7 +58,7 @@ Get-ChildItem "C:\Program Files\Elastic\Agent\" -Attributes Directory -ErrorActi
         Unblock-File -Path "$uninst"
         & "$uninst"
 
-        # This is left running (not uninstalled), so we'll do it here...
+        # ElasticEndpoint can be left running (not uninstalled), so we'll uninstall it here...
         if (Get-Service ElasticEndpoint -ErrorAction SilentlyContinue) {
             $service = Get-WmiObject -Class Win32_Service -Filter "name='ElasticEndpoint'"
             $service.StopService()
@@ -60,12 +69,18 @@ Get-ChildItem "C:\Program Files\Elastic\Agent\" -Attributes Directory -ErrorActi
 }
 Remove-Item -Path "$agent_dir" -Recurse -Force -ErrorAction SilentlyContinue
 
+# Get agent install zip
 If (-Not (Test-Path -Path "$download_dir\$agent_zip" )){
     Invoke-WebRequest -UseBasicParsing -Uri "$agent_zip_url" -OutFile "$download_dir\$agent_zip"
 }
 
+# Unpack
 Expand-Archive -Path "$download_dir\$agent_zip" -DestinationPath "C:\Program Files\Elastic\Agent" -Force
 Rename-Item -Path "C:\Program Files\Elastic\Agent\elastic-agent-$stack_ver-windows-x86_64" -NewName "$stack_ver" -Force
+
+#
+# Enroll agent to ES/Kibana
+#
 
 # FIXME elastic-agent appears broken with PS call cmd '&'
 #& "$agent_dir\elastic-agent.exe" "@('enroll', $kn_url, $agent_token, '-f' )"
@@ -73,6 +88,9 @@ Rename-Item -Path "C:\Program Files\Elastic\Agent\elastic-agent-$stack_ver-windo
 # This means no output, flying blind
 Start-Process "$agent_dir\elastic-agent.exe" -ArgumentList @('enroll', $kn_url, $agent_token, '-f' ) -Wait -NoNewWindow
 
+#
+# Install the Agent service
+#
 Unblock-File -Path "$agent_dir\install-service-elastic-agent.ps1"
 & "$agent_dir\install-service-elastic-agent.ps1"
 

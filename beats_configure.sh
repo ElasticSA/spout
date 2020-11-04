@@ -72,14 +72,18 @@ echo $CLOUD_ID | $BEAT_NAME keystore add CLOUD_ID --stdin --force
 echo $BEATS_AUTH | $BEAT_NAME keystore add CLOUD_AUTH --stdin --force
 
 echo "$CONF_SNIPPET" >>/etc/$BEAT_NAME/$BEAT_NAME.yml
-    
-CHECK_ALIAS=$(curl -qks -u "$BEATS_AUTH" "https://$EC_ES_HOST.$EC_SUFFIX/_cat/aliases/$BEAT_NAME-$STACK_VERSION"||_fail "curl alias check failed")
-echo "CHECK_ALIAS=$CHECK_ALIAS"
 
-if echo "$CHECK_ALIAS"|grep -qv "$BEAT_NAME-$STACK_VERSION" ; then
-    echo "$(date) Running $BEAT_NAME setup"
-    #Log failure and continue
-    $BEAT_NAME setup || echo "FAILED: $BEAT_NAME setup"
+if [ -n "BEATS_SETUP_AUTH" ]; then
+
+    CHECK_ALIAS=$(curl -qks -u "$BEATS_SETUP_AUTH" "https://$EC_ES_HOST.$EC_SUFFIX/_cat/aliases/$BEAT_NAME-$STACK_VERSION"||_fail "curl alias check failed")
+    echo "CHECK_ALIAS=$CHECK_ALIAS"
+    
+    if echo "$CHECK_ALIAS"|grep -qv "$BEAT_NAME-$STACK_VERSION" ; then
+        echo "$(date) Running $BEAT_NAME setup"
+        #Log failure and continue
+        $BEAT_NAME -E "cloud.auth=$BEATS_SETUP_AUTH" setup || echo "FAILED: $BEAT_NAME setup"
+    fi
+    
 fi
 
 case "$BEAT_NAME" in

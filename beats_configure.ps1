@@ -94,20 +94,23 @@ Add-Content -Path "$beat_config_dir\$beat_name.yml" -Value $config_snippet
 # If this is a new beat (type+version) we need to run 'setup' at least once
 # If an alias for this beats version is found, we assume setup was already run
 #
-# Fetch Alias listings
-$headers = @{
-    Authorization = "Basic " + (b64enc($config.BEATS_AUTH))
-}
-$check_alias = (Invoke-WebRequest -UseBasicParsing -Uri "$es_url/_cat/aliases/${beat_name}-${stack_version}" -Headers $headers).Content
-echo $check_alias
+If ( -Not [string]::IsNullOrWhiteSpace($config.BEATS_SETUP_AUTH) ){
+    # Fetch Alias listings
+    $headers = @{
+        Authorization = "Basic " + (b64enc($config.BEATS_SETUP_AUTH))
+    }
+    $check_alias = (Invoke-WebRequest -UseBasicParsing -Uri "$es_url/_cat/aliases/${beat_name}-${stack_version}" -Headers $headers).Content
+    echo $check_alias
 
-# Run setup if alias is missing
-If ( (-Not $check_alias.Contains($beat_name)) -or $($config.BEATS_FORCE_SETUP).Contains($beat_name) ) {
-    & $beat_exe @(
-        '--path.config', "$beat_config_dir",
-        '--path.data', "$beat_config_dir\data",
-        'setup'
-    )
+    # Run setup if alias is missing
+    If ( (-Not $check_alias.Contains($beat_name)) -or $($config.BEATS_FORCE_SETUP).Contains($beat_name) ) {
+        & $beat_exe @(
+            '--path.config', "$beat_config_dir",
+            '--path.data', "$beat_config_dir\data",
+            '-E', "cloud.auth=$($config.BEATS_SETUP_AUTH)",
+            'setup'
+        )
+    }
 }
 
 # 

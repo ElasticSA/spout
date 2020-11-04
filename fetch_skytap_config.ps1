@@ -27,6 +27,7 @@ $config = @{
     STACK_VERSION      = $env_config.stack_version;
     CLOUD_ID           = $env_config.cloud_id;
     BEATS_AUTH         = $env_config.beats_auth;
+    BEATS_SETUP_AUTH   = $env_config.beats_setup_auth;
     BEATS_FORCE_SETUP  = $vm_config.beats_force_setup;
     AGENT_ENROLL_TOKEN = $env_config.agent_enroll_token;
 }

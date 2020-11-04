@@ -1,6 +1,18 @@
 # This is an example of the elastic_stack.config file that these scripts read from
 
+# the version to install
 STACK_VERSION=7.9.3
+
+# Easily copyable from cloud.elastic.co
+#  (or can be generated for on-prem/vpc installations)
 CLOUD_ID=My_Deployment:SGVsbG8gV29ybGQhCg==
-BEATS_AUTH=beats_agent:Qwerty123!
+
+# Beats user for ingest and telemetry
+BEATS_AUTH=beats_ingest:Qwerty123!
+
+# Beats user if setup is needed
+#  (only required if Elasticsearch or Kibana habe not been configured for a given beat)
+BEATS_SETUP_AUTH=beats_setup_auth:Qwerty123!
+
+# Token used to enroll Elastic Agent 
 AGENT_ENROLL_TOKEN=SGVsbG8gV29ybGQhCg==

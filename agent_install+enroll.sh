@@ -9,6 +9,10 @@
 # Please create this^ file before running this script 
 #
 
+#
+# Reference: https://www.elastic.co/guide/en/ingest-management/current/elastic-agent-installation.html
+#
+
 set -e
 
 SCRIPTDIR=$(dirname $0)
@@ -24,6 +28,9 @@ for c in curl jq sed lsb_release base64; do
   test -x "$(which $c)" || _fail "Programme '$c' appears to be missing"
 done
 
+#
+# Grab config settings
+#
 . ./elastic_stack.config
 
 CLOUD_INFO=$(echo ${CLOUD_ID#*:} | base64 -d -)
@@ -34,6 +41,7 @@ EC_SUFFIX=${EC_SUFFIX%:9243}
 EC_ES_HOST=$(echo $CLOUD_INFO | cut -d $ -f2)
 EC_KN_HOST=$(echo $CLOUD_INFO | cut -d $ -f3)
 
+# Check config variables
 for V in STACK_VERSION CLOUD_ID AGENT_ENROLL_TOKEN EC_ES_HOST EC_SUFFIX; do
   VAL=$(eval "echo \${$V}")
   if [ -z "$VAL" ]; then
@@ -105,9 +113,13 @@ _EOF_
 install_on_RHEL() { install_on_CentOS; }
 
 ################################################################
+#
+# Main script starts here
 
+# Is agent already installed?
 if [ -x "$(which elastic-agent)" ]; then
 
+  # Is an agent of the same version installed?
   CURRENT_VER=$(elastic-agent version | sed -Ee 's/.*version (\S*) .*/\1/')
   if [ "$CURRENT_VER" != "$STACK_VERSION" ]; then
     systemctl stop elastic-agent
