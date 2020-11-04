@@ -17,7 +17,7 @@ do {
         $vm_config = ($skytap_data.user_data | ConvertFrom-yaml)
     }
     catch {
-         Write-Error "Skytap data fetch failed, trying again"
+         Write-Error "Skytap data fetch failed, trying again" -ErrorAction SilentlyContinue 
          $failed = $True
          Start-Sleep -Seconds 20
     }
