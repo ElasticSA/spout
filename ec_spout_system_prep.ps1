@@ -69,7 +69,7 @@ $trigger =  New-ScheduledTaskTrigger -AtStartup -RandomDelay 00:00:30
 $settings = New-ScheduledTaskSettingsSet `
     -ExecutionTimeLimit 00:20:00 -RestartCount 3 -RestartInterval 00:01:00
 
-Unregister-ScheduledTask -TaskName "ec_spout_beats_startup" -Confirm -ErrorAction SilentlyContinue
+Unregister-ScheduledTask -TaskName "ec_spout_beats_startup" -ErrorAction SilentlyContinue
 Register-ScheduledTask -Force `
     -TaskName "ec_spout_beats_startup" -Description "Elastic Cloud Spout: Initialise all beats at startup" `
     -Action $action -Trigger $trigger -Settings $settings -User "System"
@@ -82,7 +82,7 @@ $trigger =  New-ScheduledTaskTrigger -AtStartup -RandomDelay 00:00:30
 $settings = New-ScheduledTaskSettingsSet `
     -ExecutionTimeLimit 00:20:00 -RestartCount 3 -RestartInterval 00:01:00
 
-Unregister-ScheduledTask -TaskName "ec_spout_agent_startup" -Confirm -ErrorAction SilentlyContinue
+Unregister-ScheduledTask -TaskName "ec_spout_agent_startup" -ErrorAction SilentlyContinue
 Register-ScheduledTask -Force `
     -TaskName "ec_spout_agent_startup" -Description "Elastic Cloud Spout: Initialise agent at startup" `
     -Action $action -Trigger $trigger -Settings $settings -User "System" 
