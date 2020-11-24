@@ -1,14 +1,14 @@
 # Elastic EC_Spout demo scripts
 
-Script for the Elastic Stack demonstrations; but can also be used on their own. 
+Demonstration scripts for the Elastic Stack; but can also be used for other purposes. 
 
 ## Getting Started
 
-Look at the follow scripts as they are not tied to any specific demo environment and be used anywhere:
- - agent_install_enroll.ps1|sh
+Look at the following scripts as they are not tied to any specific demo environment and can be used anywhere:
+ - agent_install+enroll.ps1|sh
  - beats_install.ps1|sh
  - beats_configure.ps1|sh
- - utilities.ps1|sh
+ - (utilities.ps1|sh)
  
 The ps1 scripts are powershell scripts for Windows and the sh scripts are shell scripts for Linux.
 
@@ -27,7 +27,7 @@ Copy the scripts to a target system and use as needed.
 ## Deployment
 
 These scripts are for demonstration purposes only, they do not follow all production deployment
-recommendations. Most notably they use the 'elastic' superuser and not a dedicated beats user.
+recommendations.
 
 ## Contributing
 

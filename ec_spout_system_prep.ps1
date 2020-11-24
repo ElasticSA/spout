@@ -65,7 +65,7 @@ Unblock-File -Path fetch_skytap_config.ps1
 $action = New-ScheduledTaskAction `
     -Execute "$PSHOME\powershell.exe" `
     -Argument "-NoProfile -NoLogo -NonInteractive -WindowStyle Hidden -File $PSScriptRoot\ec_spout_beats_startup.ps1"
-$trigger =  New-ScheduledTaskTrigger -AtStartup -RandomDelay 00:00:30
+$trigger =  New-ScheduledTaskTrigger -AtStartup -RandomDelay 00:01:30
 $settings = New-ScheduledTaskSettingsSet `
     -ExecutionTimeLimit 00:20:00 -RestartCount 3 -RestartInterval 00:01:00
 
@@ -78,7 +78,7 @@ Register-ScheduledTask -Force `
 $action = New-ScheduledTaskAction `
     -Execute "$PSHOME\powershell.exe" `
     -Argument "-NoProfile -NoLogo -NonInteractive -WindowStyle Hidden -File $PSScriptRoot\ec_spout_agent_startup.ps1"
-$trigger =  New-ScheduledTaskTrigger -AtStartup -RandomDelay 00:00:30
+$trigger =  New-ScheduledTaskTrigger -AtStartup -RandomDelay 00:01:30
 $settings = New-ScheduledTaskSettingsSet `
     -ExecutionTimeLimit 00:20:00 -RestartCount 3 -RestartInterval 00:01:00
 
