@@ -24,7 +24,7 @@ cd $SCRIPTDIR
 
 . ./utilities.sh
 
-for c in curl jq sed lsb_release base64; do
+for c in curl jq sed lsb_release base64 sort; do
   test -x "$(which $c)" || _fail "Programme '$c' appears to be missing"
 done
 
@@ -33,13 +33,7 @@ done
 #
 . ./elastic_stack.config
 
-CLOUD_INFO=$(echo ${CLOUD_ID#*:} | base64 -d -)
-
-EC_SUFFIX=$(echo $CLOUD_INFO | cut -d $ -f1)
-EC_SUFFIX=${EC_SUFFIX%:9243}
-
-EC_ES_HOST=$(echo $CLOUD_INFO | cut -d $ -f2)
-EC_KN_HOST=$(echo $CLOUD_INFO | cut -d $ -f3)
+AGENT
 
 # Check config variables
 for V in STACK_VERSION CLOUD_ID AGENT_ENROLL_TOKEN EC_ES_HOST EC_SUFFIX; do
@@ -50,6 +44,33 @@ for V in STACK_VERSION CLOUD_ID AGENT_ENROLL_TOKEN EC_ES_HOST EC_SUFFIX; do
   echo "$V=$VAL"
 done
 
+# Using Elastic Agent install allows the inline upgrade feature
+install_on_Generic() {
+  AGENT_PAC="elastic-agent-${STACK_VERSION}-linux-$(uname -m)"
+  AGENT_URL="https://artifacts.elastic.co/downloads/beats/elastic-agent/${AGENT_PAC}.tar.gz"
+  DL_DIR=/opt/Elastic/downloads
+  
+  mkdir -p $DL_DIR
+  test -n "$DL_DIR" && rm -rf "$DL_DIR/elastic-agent*" || true
+  cd $DL_DIR
+  
+  curl -qLO "$AGENT_URL"
+  curl -qLO "$AGENT_URL.sha512"
+  
+  sha512sum --check <"$AGENT_URL.sha512" || _fail "SHA512 sum mismatch"
+  
+  tar zxvf "${AGENT_PAC}.tar.gz"
+  
+  if [ "$1" = "remove" ]; then
+    /usr/bin/elastic-agent uninstall -f
+  fi
+  
+  # Assuming we use install_on_Generic for 7.10.0 and up
+  cd $AGENT_PAC
+  ./elastic-agent install -f -k "https://$EC_KN_HOST.$EC_SUFFIX" -t "$AGENT_ENROLL_TOKEN"
+}
+
+# Package installer disabled the inline upgrade feature
 install_on_Debian() {
 
   # Test if we already added the elastic repository, and add it if not
@@ -72,13 +93,17 @@ install_on_Debian() {
   
   DEBIAN_FRONTEND=noninteractive apt-get --allow-downgrades -y install elastic-agent=$STACK_VERSION
   
+  systemctl stop elastic-agent
+
+  # Assuming we use package installation on versions below 7.10.0
+  elastic-agent enroll "https://$EC_KN_HOST.$EC_SUFFIX" "$AGENT_ENROLL_TOKEN" -f
   
 } # End: install_on_Debian
 
 # Same as debian
 install_on_Ubuntu() { install_on_Debian; }
 
-
+# Package installer disabled the inline upgrade feature
 install_on_CentOS() {
 
   # Test if we already added the elastic repository, and add it if not
@@ -107,6 +132,11 @@ _EOF_
   
   yum -y install elastic-agent-$STACK_VERSION
   
+  systemctl stop elastic-agent
+
+  # Assuming we use package installation on versions below 7.10.0
+  elastic-agent enroll "https://$EC_KN_HOST.$EC_SUFFIX" "$AGENT_ENROLL_TOKEN" -f
+  
 } # End: install_on_CentOS
 
 # Same as CentOS 
@@ -116,6 +146,15 @@ install_on_RHEL() { install_on_CentOS; }
 #
 # Main script starts here
 
+INST_TARGET=''
+if [ "7.10.0" = "$(echo -e 7.10.0\\n$STACK_VERSION | sort -V | head -n1)" ]; then 
+  # 7.10.0 and up
+  INST_TARGET=Generic
+else
+  # Below 7.10.0
+  INST_TARGET=$(lsb_release -is)
+fi
+
 # Is agent already installed?
 if [ -x "$(which elastic-agent)" ]; then
 
@@ -123,15 +162,12 @@ if [ -x "$(which elastic-agent)" ]; then
   CURRENT_VER=$(elastic-agent version | sed -Ee 's/.*version (\S*) .*/\1/')
   if [ "$CURRENT_VER" != "$STACK_VERSION" ]; then
     systemctl stop elastic-agent
-    install_on_$(lsb_release -is) remove
+    install_on_$INST_TARGET remove
   fi
   
 else
-  install_on_$(lsb_release -is)
+  install_on_$INST_TARGET
 fi
 
-systemctl stop elastic-agent
-
-elastic-agent enroll "https://$EC_KN_HOST.$EC_SUFFIX" "$AGENT_ENROLL_TOKEN" -f
-
-systemctl start elastic-agent
+sleep 20s
+systemctl restart elastic-agent

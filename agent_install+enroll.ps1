@@ -1,4 +1,4 @@
-#
+ #
 # Install and Enroll the Elastic Agent on a Windows system.
 # This script reads and uses the following settings read from a file called
 # "elastic_stack.config":
@@ -40,23 +40,91 @@ If (
     Write-Error "Configuration missing" -ErrorAction Stop 
 }
 
-# Prepare some common used strings
-$agent_zip = "elastic-agent-$stack_ver-windows-x86_64.zip"
-$agent_zip_url = "https://artifacts.elastic.co/downloads/beats/elastic-agent/$agent_zip"
-$agent_dir = "C:\Program Files\Elastic\Agent\$stack_ver"
-$download_dir = "C:\ProgramData\Elastic\Downloads"
+function install_pre-7-10 ()
+{
+    echo "--- Installing pre-7.10.0 ---"
 
-# Ensure d/l dir exists
-$ignore = (New-Item -Force -ItemType Directory -Path "$download_dir")
+    # Prepare some common used strings
+    $agent_zip = "elastic-agent-$stack_ver-windows-x86_64.zip"
+    $agent_zip_url = "https://artifacts.elastic.co/downloads/beats/elastic-agent/$agent_zip"
+    $agent_dir = "C:\Program Files\Elastic\Agent\$stack_ver"
+    $download_dir = "C:\ProgramData\Elastic\Downloads"
 
-# Iterate through any existing agent install directories and uninstall them
-Get-ChildItem "C:\Program Files\Elastic\Agent\" -Attributes Directory -ErrorAction SilentlyContinue | ForEach-Object {
-    $uninst = "C:\Program Files\Elastic\Agent\$_\uninstall-service-elastic-agent.ps1"
-    If (Test-Path -Path "$uninst") {
-        echo "Uninstalling existing: $_"
+    # Ensure d/l dir exists
+    $ignore = (New-Item -Force -ItemType Directory -Path "$download_dir")
 
-        Unblock-File -Path "$uninst"
-        & "$uninst"
+    # Iterate through any existing agent install directories and uninstall them
+    Get-ChildItem "C:\Program Files\Elastic\Agent\" -Attributes Directory -ErrorAction SilentlyContinue | ForEach-Object {
+        $uninst = "C:\Program Files\Elastic\Agent\$_\uninstall-service-elastic-agent.ps1"
+        If (Test-Path -Path "$uninst") {
+            echo "Uninstalling existing: $_"
+
+            Unblock-File -Path "$uninst"
+            & "$uninst"
+
+            # ElasticEndpoint can be left running (not uninstalled), so we'll uninstall it here...
+            if (Get-Service ElasticEndpoint -ErrorAction SilentlyContinue) {
+                $service = Get-WmiObject -Class Win32_Service -Filter "name='ElasticEndpoint'"
+                $service.StopService()
+                Start-Sleep -s 1
+                $service.delete()
+            }
+        }
+    }
+    Remove-Item -Path "$agent_dir" -Recurse -Force -ErrorAction SilentlyContinue
+
+    # Get agent install zip
+    If (-Not (Test-Path -Path "$download_dir\$agent_zip" )){
+        Invoke-WebRequest -UseBasicParsing -Uri "$agent_zip_url" -OutFile "$download_dir\$agent_zip"
+    }
+
+    # Verify that the download is correct
+    Invoke-WebRequest -UseBasicParsing -Uri "${agent_zip_url}.sha512" -OutFile "$download_dir\${agent_zip}.sha512"
+    $hashA = (Get-Content -Path "$download_dir\${agent_zip}.sha512").Split(' ')[0]
+    $hashB = (Get-FileHash -Algorithm SHA512 -Path "$download_dir\$agent_zip").hash
+    if ($hashA -ne $hashB) {
+        Remove-Item -Path "$download_dir\$agent_zip" -Force
+        Remove-Item -Path "$download_dir\${agent_zip}.sha512" -Force
+        Write-Error "File download corrupted, mismatching hash"
+        # Will stop execution here due to $ErrorActionPreference ^^
+    } 
+
+    # Unpack
+    Expand-Archive -Path "$download_dir\$agent_zip" -DestinationPath "C:\Program Files\Elastic\Agent" -Force
+    Rename-Item -Path "C:\Program Files\Elastic\Agent\elastic-agent-$stack_ver-windows-x86_64" -NewName "$stack_ver" -Force
+    
+    #
+    # Install and Enroll agent to ES/Kibana
+    $ErrorActionPreference = "Continue" #Ignore STDERR 'errors' 
+    & "$agent_dir\elastic-agent.exe" enroll "$kn_url" "$agent_token" -f
+    
+    # This means no output, flying blind
+    #Start-Process "$agent_dir\elastic-agent.exe" -ArgumentList @('enroll', $kn_url, $agent_token, '-f' ) -Wait -NoNewWindow
+    
+    #
+    # Install the Agent service
+    Unblock-File -Path "$agent_dir\install-service-elastic-agent.ps1"
+    & "$agent_dir\install-service-elastic-agent.ps1"
+}
+
+function install_post-7-10 ()
+{
+    echo "--- Installing 7.10.0 and/or above ---"
+
+    # Prepare some common used strings
+    $agent_zip = "elastic-agent-$stack_ver-windows-x86_64.zip"
+    $agent_zip_url = "https://artifacts.elastic.co/downloads/beats/elastic-agent/$agent_zip"
+    #$agent_dir = "C:\Program Files\Elastic\Agent\$stack_ver"
+    $download_dir = "C:\ProgramData\Elastic\Downloads"
+
+    # Ensure d/l dir exists
+    $ignore = (New-Item -Force -ItemType Directory -Path "$download_dir")
+
+
+    If (Test-Path -Path "C:\Program Files\Elastic\Agent\elastic-agent.exe") {
+        echo "Uninstalling existing"
+
+        & "C:\Program Files\Elastic\Agent\elastic-agent.exe" uninstall -f
 
         # ElasticEndpoint can be left running (not uninstalled), so we'll uninstall it here...
         if (Get-Service ElasticEndpoint -ErrorAction SilentlyContinue) {
@@ -66,43 +134,38 @@ Get-ChildItem "C:\Program Files\Elastic\Agent\" -Attributes Directory -ErrorActi
             $service.delete()
         }
     }
+
+    # Get agent install zip
+    If (-Not (Test-Path -Path "$download_dir\$agent_zip" )){
+        Invoke-WebRequest -UseBasicParsing -Uri "$agent_zip_url" -OutFile "$download_dir\$agent_zip"
+    }
+
+    # Verify that the download is correct
+    Invoke-WebRequest -UseBasicParsing -Uri "${agent_zip_url}.sha512" -OutFile "$download_dir\${agent_zip}.sha512"
+    $hashA = (Get-Content -Path "$download_dir\${agent_zip}.sha512").Split(' ')[0]
+    $hashB = (Get-FileHash -Algorithm SHA512 -Path "$download_dir\$agent_zip").hash
+    if ($hashA -ne $hashB) {
+        Remove-Item -Path "$download_dir\$agent_zip" -Force
+        Remove-Item -Path "$download_dir\${agent_zip}.sha512" -Force
+        Write-Error "File download corrupted, mismatching hash"
+        # Will stop execution here due to $ErrorActionPreference ^^
+    } 
+
+    # Unpack
+    Expand-Archive -Path "$download_dir\$agent_zip" -DestinationPath "$download_dir" -Force
+
+    #
+    # Install and Enroll agent to ES/Kibana
+    #
+    $ErrorActionPreference = "Continue" #Ignore STDERR 'errors' 
+    & "$download_dir\elastic-agent-$stack_ver-windows-x86_64\elastic-agent.exe" install -f -k "$kn_url" -t "$agent_token"
+    
+
 }
-Remove-Item -Path "$agent_dir" -Recurse -Force -ErrorAction SilentlyContinue
 
-# Get agent install zip
-If (-Not (Test-Path -Path "$download_dir\$agent_zip" )){
-    Invoke-WebRequest -UseBasicParsing -Uri "$agent_zip_url" -OutFile "$download_dir\$agent_zip"
+if ([version]"7.10.0" -ge [version]$stack_ver) {
+    install_post-7-10
 }
-
-# Verify that the download is correct
-Invoke-WebRequest -UseBasicParsing -Uri "${agent_zip_url}.sha512" -OutFile "$download_dir\${agent_zip}.sha512"
-$hashA = (Get-Content -Path "$download_dir\${agent_zip}.sha512").Split(' ')[0]
-$hashB = (Get-FileHash -Algorithm SHA512 -Path "$download_dir\$agent_zip").hash
-if ($hashA -ne $hashB) {
-    Remove-Item -Path "$download_dir\$agent_zip" -Force
-    Remove-Item -Path "$download_dir\${agent_zip}.sha512" -Force
-    Write-Error "File download corrupted, mismatching hash"
-    # Will stop execution here due to $ErrorActionPreference ^^
-} 
-
-# Unpack
-Expand-Archive -Path "$download_dir\$agent_zip" -DestinationPath "C:\Program Files\Elastic\Agent" -Force
-Rename-Item -Path "C:\Program Files\Elastic\Agent\elastic-agent-$stack_ver-windows-x86_64" -NewName "$stack_ver" -Force
-
-#
-# Enroll agent to ES/Kibana
-#
-
-# FIXME elastic-agent appears broken with PS call cmd '&'
-#& "$agent_dir\elastic-agent.exe" "@('enroll', $kn_url, $agent_token, '-f' )"
-
-# This means no output, flying blind
-Start-Process "$agent_dir\elastic-agent.exe" -ArgumentList @('enroll', $kn_url, $agent_token, '-f' ) -Wait -NoNewWindow
-
-#
-# Install the Agent service
-#
-Unblock-File -Path "$agent_dir\install-service-elastic-agent.ps1"
-& "$agent_dir\install-service-elastic-agent.ps1"
-
- 
+else {
+    install_pre-7-10
+}
