@@ -163,7 +163,7 @@ function install_post-7-10 ()
 
 }
 
-if ([version]"7.10.0" -ge [version]$stack_ver) {
+if ([version]"7.10.0" -le [version]$stack_ver) {
     install_post-7-10
 }
 else {

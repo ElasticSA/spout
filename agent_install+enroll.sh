@@ -33,7 +33,13 @@ done
 #
 . ./elastic_stack.config
 
-AGENT
+CLOUD_INFO=$(echo ${CLOUD_ID#*:} | base64 -d -)
+
+EC_SUFFIX=$(echo $CLOUD_INFO | cut -d $ -f1)
+EC_SUFFIX=${EC_SUFFIX%:9243}
+
+EC_ES_HOST=$(echo $CLOUD_INFO | cut -d $ -f2)
+EC_KN_HOST=$(echo $CLOUD_INFO | cut -d $ -f3)
 
 # Check config variables
 for V in STACK_VERSION CLOUD_ID AGENT_ENROLL_TOKEN EC_ES_HOST EC_SUFFIX; do
@@ -57,7 +63,7 @@ install_on_Generic() {
   curl -qLO "$AGENT_URL"
   curl -qLO "$AGENT_URL.sha512"
   
-  sha512sum --check <"$AGENT_URL.sha512" || _fail "SHA512 sum mismatch"
+  sha512sum --check <"${AGENT_PAC}.tar.gz.sha512" || _fail "SHA512 sum mismatch"
   
   tar zxvf "${AGENT_PAC}.tar.gz"
   
