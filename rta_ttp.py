@@ -5,6 +5,8 @@
 
 import sys
 import os
+import time
+import random
 import getopt
 import importlib
 import requests
@@ -20,24 +22,37 @@ def main(argv):
     ttp_list = ['ALL']
     dry_run = False
     list_modules = None
+    wait_time = None
+    shuffle_list = False
     
     try:
-        opts, args = getopt.getopt(argv,"hdl:s:t:",["stack=","ttp=","list="])
+        opts, args = getopt.getopt(argv,"hdrl:s:t:w:",["stack=","ttp=","list=","wait="])
     except getopt.GetoptError:
         print_help()
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
+            # print help
             print_help()
             return 0
         elif opt in '-d':
+            # Dry run
             dry_run = True
         elif opt in ('-s', '--stack'):
+            # Stack version
             stack_version = arg
         elif opt in ('-t', '--ttp'):
+            # TTP list
             ttp_list = arg.split(',')
         elif opt in ('-l', '--list'):
+            # List available TTPs for a given OS
             list_modules = arg
+        elif opt in ('-w', '--wait'):
+            # Wait X secs between TTP execution
+            wait_time = int(arg)
+        elif opt in '-r':
+            # Randomise / Shuffle TTP list
+            shuffle_list = True
 
     rta = get_rta_modules(stack_version)
 
@@ -46,12 +61,15 @@ def main(argv):
             list_modules = rta.common.CURRENT_OS
 
         for mod in rta.get_ttp_names(list_modules):
-            print(mod)
+            print(f"- {mod}")
         return 0
 
     if ttp_list[0] == 'ALL':
         ttp_list = rta.get_ttp_names(rta.common.CURRENT_OS)
-        
+
+    if shuffle_list:
+        random.shuffle(ttp_list)
+
     print(ttp_list)
     print("\n")
 
@@ -64,6 +82,9 @@ def main(argv):
         except Exception as Ex:
             print(f"RTA TTP FAILED: ", Ex)
         print(f"RTA TTP Finished: {ttp_name}")
+
+        if wait_time != None:
+            time.sleep(wait_time)
     
     return 0
 
