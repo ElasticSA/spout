@@ -9,12 +9,12 @@ $ErrorActionPreference = "Stop"
 
 cd $PSScriptRoot
 
+$skytap_data = $Null
+
 do {
     $failed = $False
     try {
         $skytap_data = ((Invoke-WebRequest -UseBasicParsing -Uri 'http://gw/skytap').Content | ConvertFrom-Json)
-        $env_config = ($skytap_data.configuration_user_data | ConvertFrom-yaml)
-        $vm_config = ($skytap_data.user_data | ConvertFrom-yaml)
     }
     catch {
          Write-Error "Skytap data fetch failed, trying again" -ErrorAction SilentlyContinue 
@@ -23,6 +23,9 @@ do {
     }
 } while ($failed)
 
+$env_config = ($skytap_data.configuration_user_data | ConvertFrom-yaml)
+$vm_config = ($skytap_data.user_data | ConvertFrom-yaml)
+        
 $config = @{
     STACK_VERSION      = $env_config.stack_version;
     CLOUD_ID           = $env_config.cloud_id;

@@ -13,11 +13,13 @@ import requests
 import yaml
 import zipfile
 
-mydir = os.path.dirname(__file__)
+mydir = os.path.dirname(os.path.abspath(__file__))
 default_stack_version = '7.10.0'
 
 def main(argv):
 
+    print(f"mydir: {mydir}")
+    
     stack_version = default_stack_version
     ttp_list = ['ALL']
     dry_run = False
