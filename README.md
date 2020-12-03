@@ -1,4 +1,4 @@
-# Elastic EC_Spout demo scripts
+# Elastic Spout demo scripts
 
 Demonstration scripts for the Elastic Stack; but can also be used for other purposes. 
 
@@ -13,6 +13,8 @@ Look at the following scripts as they are not tied to any specific demo environm
 The ps1 scripts are powershell scripts for Windows and the sh scripts are shell scripts for Linux.
 
 The scripts read a config file called "elastic_stack.config", see the example file.
+
+The rta_ttp.py script can be used to run RTA TTPs from the Elastic Detection Rules project (https://github.com/elastic/detection-rules/tree/main/rta)
 
 The remaining scripts are specific to the skytap demo environment.
 
