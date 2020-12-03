@@ -33,7 +33,8 @@ fi
 
 chmod +x *.sh
 
-cat >/etc/systemd/system/ec_spout_beats.service <<_EOM_
+rm /etc/systemd/system/ec_spout_beats.service
+cat >/etc/systemd/system/spout_beats.service <<_EOM_
 [Unit]
 Description=EC Spout: Initialise Beats 
 Wants=network-online.target
@@ -42,7 +43,7 @@ After=network-online.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=$SCRIPTDIR/ec_spout_beats_startup.sh
+ExecStart=$SCRIPTDIR/spout_beats_startup.sh
 
 #CentOS' systemd does not allow this (too old I guess)
 #Restart=on-failure
@@ -53,7 +54,8 @@ WantedBy=multi-user.target
 
 _EOM_
 
-cat >/etc/systemd/system/ec_spout_agent.service <<_EOM_
+rm /etc/systemd/system/ec_spout_agent.service
+cat >/etc/systemd/system/spout_agent.service <<_EOM_
 [Unit]
 Description=EC Spout: Initialise Agent
 Wants=network-online.target
@@ -62,7 +64,7 @@ After=network-online.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=$SCRIPTDIR/ec_spout_agent_startup.sh
+ExecStart=$SCRIPTDIR/spout_agent_startup.sh
 
 #CentOS' systemd does not allow this (too old I guess)
 #Restart=on-failure
@@ -75,8 +77,8 @@ _EOM_
 
 systemctl daemon-reload
 
-systemctl enable ec_spout_beats.service
-systemctl enable ec_spout_agent.service
+systemctl enable spout_beats.service
+systemctl enable spout_agent.service
 
 curl -qL "$YQ_PKG_URL" -o /usr/local/bin/yq
 chmod +x /usr/local/bin/yq

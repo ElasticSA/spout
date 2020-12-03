@@ -1,5 +1,5 @@
 #
-# Run at startup by Task Scheduler with EC Spout env. on Skytap
+# Run at startup by Task Scheduler with Spout env. on Skytap
 #
 
 $ErrorActionPreference = "Stop"
@@ -9,7 +9,7 @@ cd $PSScriptRoot
 
 . ".\utilities.ps1"
 
-Start-Transcript -Path ec_spout_beats_startup.log -Append
+Start-Transcript -Path spout_beats_startup.log -Append
 
 & .\fetch_skytap_config.ps1
 
