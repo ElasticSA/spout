@@ -5,6 +5,8 @@ $ErrorActionPreference = "Stop"
 
 cd $PSScriptRoot
 
+Start-Transcript -Path spout_beats_startup.log -Append
+
 if (-Not (Get-Command python.exe -ErrorAction SilentlyContinue)) {
     Write-Warning "Not python installed, exiting"
     exit
@@ -30,7 +32,7 @@ $vm_config = ($skytap_data.user_data | ConvertFrom-yaml)
 #$env_config | ConvertTo-Yaml 
 
 If (-Not ($env_config.win_rta_config -And $env_config.win_rta_sequence)) {
-    Write-Error "No RTA definition found" -ErrorAction SilentlyContinue
+    Write-Warning "No RTA definition found"
     exit #Exit successfully to not be retried / rescheduled
 }
 
@@ -39,6 +41,7 @@ $step_delay = $(If ($env_config.win_rta_config.step_delay) { $env_config.win_rta
 
 echo "Start delay: $start_delay (Step delay: $step_delay)"
 Start-Sleep -Seconds $start_delay
+
 ForEach ($rta in $env_config.win_rta_sequence) {
     Start-Sleep -Seconds $step_delay
 
@@ -53,3 +56,5 @@ ForEach ($rta in $env_config.win_rta_sequence) {
         "$(If ($rta.wait) {"-w $($rta.wait)"})"
     echo "--- Completed RTA: $($rta.name) ---`n"
 } 
+
+Stop-Transcript 
