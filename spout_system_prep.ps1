@@ -60,6 +60,7 @@ Unblock-File -Path beats_configure.ps1
 Unblock-File -Path beats_install.ps1
 Unblock-File -Path spout_agent_startup.ps1
 Unblock-File -Path spout_beats_startup.ps1
+Unblock-File -Path spout_rta_startup.ps1
 Unblock-File -Path fetch_skytap_config.ps1
 
 # beats
@@ -89,4 +90,18 @@ Unregister-ScheduledTask -TaskName "spout_agent_startup" -ErrorAction SilentlyCo
 Register-ScheduledTask -Force `
     -TaskName "spout_agent_startup" -Description "Elastic Cloud Spout: Initialise agent at startup" `
     -Action $action -Trigger $trigger -Settings $settings -User "System" 
- 
+
+# rta
+$action = New-ScheduledTaskAction `
+    -Execute "$PSHOME\powershell.exe" `
+    -Argument "-NoProfile -NoLogo -NonInteractive -WindowStyle Hidden -File $PSScriptRoot\spout_rta_startup.ps1"
+$trigger =  New-ScheduledTaskTrigger -AtStartup -RandomDelay 00:01:30
+$trigger.Delay = 'PT5M'
+$settings = New-ScheduledTaskSettingsSet `
+    -ExecutionTimeLimit 01:30:00 -RestartCount 2 -RestartInterval 00:05:00
+
+Unregister-ScheduledTask -TaskName "spout_rta_startup" -ErrorAction SilentlyContinue
+Register-ScheduledTask -Force `
+    -TaskName "spout_rta_startup" -Description "Elastic Cloud Spout: Initialise RTA TTP execution" `
+    -Action $action -Trigger $trigger -Settings $settings -User "System" 
+
