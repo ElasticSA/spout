@@ -10,7 +10,6 @@ import random
 import getopt
 import importlib
 import requests
-import yaml
 import zipfile
 
 mydir = os.path.dirname(os.path.abspath(__file__))

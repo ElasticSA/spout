@@ -52,6 +52,31 @@ Start-Process -FilePath "$temp_dir\Sysmon64.exe" -WorkingDirectory "$temp_dir" -
 #Remove-Item -Path $temp_dir -Recurse -Force -ErrorAction SilentlyContinue
 echo "Sysmon Installation Complete"
 
+if ((Get-Command python.exe) -And (Get-Command pip.exe)) {
+    & pip install requests pyyaml
+}
+
+# Mostly disable Windows Defender
+Set-MpPreference -DisableArchiveScanning $True `
+    -DisableAutoExclusions $True `
+    -DisableBehaviorMonitoring $True `
+    -DisableBlockAtFirstSeen $True `
+    -DisableCatchupFullScan $True `
+    -DisableCatchupQuickScan $True `
+    -DisableCpuThrottleOnIdleScans $True `
+    -DisableDatagramProcessing $True `
+    -DisableEmailScanning $True `
+    -DisableIntrusionPreventionSystem $True `
+    -DisableIOAVProtection $True `
+    -DisablePrivacyMode $True `
+    -DisableRealtimeMonitoring $True `
+    -DisableRemovableDriveScanning $True `
+    -DisableRestorePoint $True `
+    -DisableScanningMappedNetworkDrivesForFullScan $True `
+    -DisableScanningNetworkFiles $True `
+    -DisableScriptScanning $True
+
+
 # Configure EC spout scripts
 
 Unblock-File -Path utilities.ps1
