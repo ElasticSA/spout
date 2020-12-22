@@ -52,7 +52,7 @@ Start-Process -FilePath "$temp_dir\Sysmon64.exe" -WorkingDirectory "$temp_dir" -
 #Remove-Item -Path $temp_dir -Recurse -Force -ErrorAction SilentlyContinue
 echo "Sysmon Installation Complete"
 
-if ((Get-Command python.exe) -And (Get-Command pip.exe)) {
+if ((Get-Command python.exe -ErrorAction SilentlyContinue) -And (Get-Command pip.exe -ErrorAction SilentlyContinue)) {
     & pip install requests pyyaml
 }
 

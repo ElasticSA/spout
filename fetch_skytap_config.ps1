@@ -17,9 +17,14 @@ do {
         $skytap_data = ((Invoke-WebRequest -UseBasicParsing -Uri 'http://gw/skytap').Content | ConvertFrom-Json)
     }
     catch {
-         Write-Error "Skytap data fetch failed, trying again" -ErrorAction SilentlyContinue 
-         $failed = $True
-         Start-Sleep -Seconds 20
+        Write-Error "Skytap data fetch failed, trying again" -ErrorAction SilentlyContinue 
+        $failed = $True
+    }
+    if ( [string]::IsNullOrWhiteSpace($skytap_data) ) {
+        $failed = $True
+    }
+    if ( $failed ){
+        Start-Sleep -Seconds 20
     }
 } while ($failed)
 

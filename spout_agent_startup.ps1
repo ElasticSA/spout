@@ -9,8 +9,10 @@ cd $PSScriptRoot
 
 Start-Transcript -Path spout_agent_startup.log -Append
 
+echo "Calling fetch_skytap_config"
 & .\fetch_skytap_config.ps1
 
+echo "Calling agent_install+enroll"
 & .\agent_install+enroll.ps1
 
 # Not coming up cleanly first time, so we give it a kick!
