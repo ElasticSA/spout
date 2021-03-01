@@ -10,6 +10,7 @@ $ErrorActionPreference = "Stop"
 cd $PSScriptRoot
 
 $skytap_data = $Null
+$hostname = $($env:COMPUTERNAME).ToLower()
 
 do {
     $failed = $False
@@ -17,19 +18,22 @@ do {
         $skytap_data = ((Invoke-WebRequest -UseBasicParsing -Uri 'http://gw/skytap').Content | ConvertFrom-Json)
     }
     catch {
-        Write-Error "Skytap data fetch failed, trying again" -ErrorAction SilentlyContinue 
-        $failed = $True
-    }
-    if ( [string]::IsNullOrWhiteSpace($skytap_data) ) {
-        $failed = $True
-    }
-    if ( $failed ){
-        Start-Sleep -Seconds 20
+         Write-Error "Skytap data fetch failed, trying again" -ErrorAction SilentlyContinue 
+         $failed = $True
+         Start-Sleep -Seconds 20
     }
 } while ($failed)
 
 $env_config = ($skytap_data.configuration_user_data | ConvertFrom-yaml)
 $vm_config = ($skytap_data.user_data | ConvertFrom-yaml)
+
+$fleet_token = $Null
+if ([string]::IsNullOrWhiteSpace($env_config.agent_enroll_token.$hostname)) {
+    $fleet_token = $env_config.agent_enroll_token.windows
+}
+else {
+    $fleet_token = $env_config.agent_enroll_token.$hostname
+}
         
 $config = @{
     STACK_VERSION      = $env_config.stack_version;
@@ -37,7 +41,8 @@ $config = @{
     BEATS_AUTH         = $env_config.beats_auth;
     BEATS_SETUP_AUTH   = $env_config.beats_setup_auth;
     BEATS_FORCE_SETUP  = $vm_config.beats_force_setup;
-    AGENT_ENROLL_TOKEN = $env_config.agent_enroll_token;
+    AGENT_ENROLL_TOKEN = $fleet_token;
 }
 
 $config.GetEnumerator() | ForEach-Object { "$($_.Name)=$($_.Value)" } | Out-File -FilePath elastic_stack.config -Encoding utf8 -Force
+ 

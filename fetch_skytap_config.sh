@@ -26,6 +26,14 @@ done
 ENV_CONFIG=$(echo "$SKYTAP_DATA" | jq -r .configuration_user_data)
 VM_CONFIG=$(echo "$SKYTAP_DATA" | jq -r .user_data)
 
+FLEET_TOKEN=
+
+if [ -z $(echo "$ENV_CONFIG" | yq r - agent_enroll_token.${HOSTNAME,,}) ]; then
+    FLEET_TOKEN=$(echo "$ENV_CONFIG" | yq r - agent_enroll_token.linux)
+else
+    FLEET_TOKEN=$(echo "$ENV_CONFIG" | yq r - agent_enroll_token.${HOSTNAME,,})
+fi
+
 # Truncate existing
 echo "# $(date)" >elastic_stack.config
 
@@ -34,12 +42,9 @@ if [[ "$ENV_CONFIG" == ---* ]]; then
     echo "CLOUD_ID=$(          echo "$ENV_CONFIG" | yq r - cloud_id)"           >>elastic_stack.config
     echo "BEATS_AUTH=$(        echo "$ENV_CONFIG" | yq r - beats_auth)"         >>elastic_stack.config
     echo "BEATS_SETUP_AUTH=$(  echo "$ENV_CONFIG" | yq r - beats_setup_auth)"   >>elastic_stack.config
-    echo "AGENT_ENROLL_TOKEN=$(echo "$ENV_CONFIG" | yq r - agent_enroll_token)" >>elastic_stack.config
+    echo "AGENT_ENROLL_TOKEN=${FLEET_TOKEN}" >>elastic_stack.config
 fi
 
 if [[ "$VM_CONFIG" == ---* ]]; then
     echo "BEATS_FORCE_SETUP=$(  echo "$VM_CONFIG" | yq r - beats_force_setup)"  >>elastic_stack.config
 fi
-
-
-
