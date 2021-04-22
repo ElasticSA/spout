@@ -12,8 +12,8 @@ function b64enc ([string]$str)
     return [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($str))
 }
 
-# Spout tends to hang on skytype while downloading, here we try to bulletproof that
-function download_file ([string]$url, [string]$dest, [bool]$check=$true)
+ # Spout tends to hang on skytype while downloading, here we try to bulletproof that
+function download_file ([string]$url, [string]$dest, [bool]$check=$True)
 {
     $timeout = 120
     
@@ -28,8 +28,8 @@ function download_file ([string]$url, [string]$dest, [bool]$check=$true)
     
             If ($check) {
                 Write-Output "--- Downloading hash ---"
-                Remove-Item -Path "${dest}.sha512" -Force
-                Invoke-WebRequest -UseBasicParsing -Uri "${url}.sha512" -OutFile "${dest}.sha512" -TimeoutSec $timeout/2
+                Remove-Item -Path "${dest}.sha512" -Force -EA Ignore
+                Invoke-WebRequest -UseBasicParsing -Uri "${url}.sha512" -OutFile "${dest}.sha512" -TimeoutSec $([int]($timeout/2))
             }
         }
         catch {
@@ -37,20 +37,20 @@ function download_file ([string]$url, [string]$dest, [bool]$check=$true)
             $fail = $True
         }
         
-        If ($check) {
+        If ($check -And -Not $fail) {
             Write-Output "--- Checking hash ---"
             $hashA = (Get-Content -Path "${dest}.sha512").Split(' ')[0]
             $hashB = (Get-FileHash -Algorithm SHA512 -Path "$dest").hash
             if ($hashA -ne $hashB) {
-                Remove-Item -Path "$dest" -Force
-                Remove-Item -Path "${dest}.sha512" -Force
+                Remove-Item -Path "$dest" -Force -EA Ignore
+                Remove-Item -Path "${dest}.sha512" -Force -EA Ignore
                 Write-Error "File download corrupted, mismatching hash" -ErrorAction SilentlyContinue 
                 $fail = $True
             } 
         }
         
-        if ($fail) {
+        If ($fail) {
             Start-Sleep -Seconds 10
         }
     } while ($fail)
-}
+} 

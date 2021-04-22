@@ -73,23 +73,8 @@ function install_pre-7-10 ()
     }
     Remove-Item -Path "$agent_dir" -Recurse -Force -ErrorAction SilentlyContinue
 
-#     # Get agent install zip
-#     If (-Not (Test-Path -Path "$download_dir\$agent_zip" )){
-#         Invoke-WebRequest -UseBasicParsing -Uri "$agent_zip_url" -OutFile "$download_dir\$agent_zip"
-#     }
-# 
-#     # Verify that the download is correct
-#     Invoke-WebRequest -UseBasicParsing -Uri "${agent_zip_url}.sha512" -OutFile "$download_dir\${agent_zip}.sha512"
-#     $hashA = (Get-Content -Path "$download_dir\${agent_zip}.sha512").Split(' ')[0]
-#     $hashB = (Get-FileHash -Algorithm SHA512 -Path "$download_dir\$agent_zip").hash
-#     if ($hashA -ne $hashB) {
-#         Remove-Item -Path "$download_dir\$agent_zip" -Force
-#         Remove-Item -Path "$download_dir\${agent_zip}.sha512" -Force
-#         Write-Error "File download corrupted, mismatching hash"
-#         # Will stop execution here due to $ErrorActionPreference ^^
-#     } 
 
-    download_file("$agent_zip_url", "$download_dir\$agent_zip")
+    download_file "$agent_zip_url" "$download_dir\$agent_zip"
 
     # Unpack
     Expand-Archive -Path "$download_dir\$agent_zip" -DestinationPath "C:\Program Files\Elastic\Agent" -Force
@@ -137,21 +122,8 @@ function install_post-7-10 ()
         }
     }
 
-    # Get agent install zip
-    If (-Not (Test-Path -Path "$download_dir\$agent_zip" )){
-        Invoke-WebRequest -UseBasicParsing -Uri "$agent_zip_url" -OutFile "$download_dir\$agent_zip"
-    }
 
-    # Verify that the download is correct
-    Invoke-WebRequest -UseBasicParsing -Uri "${agent_zip_url}.sha512" -OutFile "$download_dir\${agent_zip}.sha512"
-    $hashA = (Get-Content -Path "$download_dir\${agent_zip}.sha512").Split(' ')[0]
-    $hashB = (Get-FileHash -Algorithm SHA512 -Path "$download_dir\$agent_zip").hash
-    if ($hashA -ne $hashB) {
-        Remove-Item -Path "$download_dir\$agent_zip" -Force
-        Remove-Item -Path "$download_dir\${agent_zip}.sha512" -Force
-        Write-Error "File download corrupted, mismatching hash"
-        # Will stop execution here due to $ErrorActionPreference ^^
-    } 
+    download_file "$agent_zip_url" "$download_dir\$agent_zip"
 
     # Unpack
     Expand-Archive -Path "$download_dir\$agent_zip" -DestinationPath "$download_dir" -Force
@@ -159,7 +131,7 @@ function install_post-7-10 ()
     #
     # Install and Enroll agent to ES/Kibana
     #
-    $ErrorActionPreference = "Continue" #Ignore STDERR 'errors' 
+    $ErrorActionPreference = "Continue" #Ignore STDERR output being treated as errors
     & "$download_dir\elastic-agent-$stack_ver-windows-x86_64\elastic-agent.exe" install -f -k "$kn_url" -t "$agent_token"
     
 
