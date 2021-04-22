@@ -36,7 +36,7 @@ If (-Not ($env_config.win_rta_config -And $env_config.win_rta_sequence)) {
     exit #Exit successfully to not be retried / rescheduled
 }
 
-if (-Not ($env_config.win_rta_config.enabled and $vm_config.win_rta_config.enabled)) {
+if (-Not ($env_config.win_rta_config.enabled -And $vm_config.win_rta_config.enabled)) {
     Write-Warning "RTA TTPs not enabled, exiting"
     exit
 }

@@ -15,7 +15,7 @@ $hostname = $($env:COMPUTERNAME).ToLower()
 do {
     $failed = $False
     try {
-        $skytap_data = ((Invoke-WebRequest -UseBasicParsing -Uri 'http://gw/skytap').Content | ConvertFrom-Json)
+        $skytap_data = ((Invoke-WebRequest -UseBasicParsing -Uri 'http://gw/skytap' -TimeoutSec 60 ).Content | ConvertFrom-Json)
     }
     catch {
          Write-Error "Skytap data fetch failed, trying again" -ErrorAction SilentlyContinue 

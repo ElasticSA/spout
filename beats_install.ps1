@@ -12,7 +12,7 @@ Param(
 $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 
 
-#. ".\utilities.ps1"
+. ".\utilities.ps1"
 
 # Setup some varables
 $download_dir = "C:\ProgramData\Elastic\Downloads"
@@ -40,21 +40,23 @@ if ($null -ne $app) {
 
 Write-Output "*** Installing $beat_name ($beat_ver) ***"
 
-# Download MSI
-If (-Not (Test-Path -Path "$download_dir\$beat_install_msi" )){
-    Invoke-WebRequest -UseBasicParsing -Uri "$beat_artifact_uri" -OutFile "$download_dir\$beat_install_msi"
-}
+# # Download MSI
+# If (-Not (Test-Path -Path "$download_dir\$beat_install_msi" )){
+#     Invoke-WebRequest -UseBasicParsing -Uri "$beat_artifact_uri" -OutFile "$download_dir\$beat_install_msi"
+# }
+# 
+# # Verify MSI is correct
+# Invoke-WebRequest -UseBasicParsing -Uri "${beat_artifact_uri}.sha512" -OutFile "$download_dir\${beat_install_msi}.sha512"
+# $hashA = (Get-Content -Path "$download_dir\${beat_install_msi}.sha512").Split(' ')[0]
+# $hashB = (Get-FileHash -Algorithm SHA512 -Path "$download_dir\$beat_install_msi").hash
+# if ($hashA -ne $hashB) {
+#     Remove-Item -Path "$download_dir\$beat_install_msi" -Force
+#     Remove-Item -Path "$download_dir\${beat_install_msi}.sha512" -Force
+#     Write-Error "File download corrupted, mismatching hash"
+#     # Will stop execution here due to $ErrorActionPreference ^^
+# } 
 
-# Verify MSI is correct
-Invoke-WebRequest -UseBasicParsing -Uri "${beat_artifact_uri}.sha512" -OutFile "$download_dir\${beat_install_msi}.sha512"
-$hashA = (Get-Content -Path "$download_dir\${beat_install_msi}.sha512").Split(' ')[0]
-$hashB = (Get-FileHash -Algorithm SHA512 -Path "$download_dir\$beat_install_msi").hash
-if ($hashA -ne $hashB) {
-    Remove-Item -Path "$download_dir\$beat_install_msi" -Force
-    Remove-Item -Path "$download_dir\${beat_install_msi}.sha512" -Force
-    Write-Error "File download corrupted, mismatching hash"
-    # Will stop execution here due to $ErrorActionPreference ^^
-} 
+download_file("$beat_artifact_uri", "$download_dir\$beat_install_msi")
 
 # Run MSI installer
 $MSIArguments = @(
