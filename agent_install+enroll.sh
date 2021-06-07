@@ -5,7 +5,7 @@
 # "elastic_stack.config":
 # - CLOUD_ID: Elastic Cloud (or ECE) deployment ID to connect to
 # - STACK_VERSION: The version to install. e.g. 7.9.2
-# - AGENT_ENROLL_TOKEN: The Fleet Agent Enroll Token to enroll with
+# - FLEET_TOKEN: The Fleet Agent Enroll Token to enroll with
 # Please create this^ file before running this script 
 #
 
@@ -42,7 +42,7 @@ EC_ES_HOST=$(echo $CLOUD_INFO | cut -d $ -f2)
 EC_KN_HOST=$(echo $CLOUD_INFO | cut -d $ -f3)
 
 # Check config variables
-for V in STACK_VERSION CLOUD_ID AGENT_ENROLL_TOKEN EC_ES_HOST EC_SUFFIX; do
+for V in STACK_VERSION CLOUD_ID FLEET_TOKEN FLEET_SERVER EC_ES_HOST EC_SUFFIX; do
   VAL=$(eval "echo \${$V}")
   if [ -z "$VAL" ]; then
     _fail "Variable $V missing!"
@@ -51,6 +51,7 @@ for V in STACK_VERSION CLOUD_ID AGENT_ENROLL_TOKEN EC_ES_HOST EC_SUFFIX; do
 done
 
 # Using Elastic Agent install allows the inline upgrade feature
+# Used for 7.10.0 and above
 install_on_Generic() {
   AGENT_PAC="elastic-agent-${STACK_VERSION}-linux-$(uname -m)"
   AGENT_URL="https://artifacts.elastic.co/downloads/beats/elastic-agent/${AGENT_PAC}.tar.gz"
@@ -73,10 +74,18 @@ install_on_Generic() {
   
   # Assuming we use install_on_Generic for 7.10.0 and up
   cd $AGENT_PAC
-  ./elastic-agent install -f -k "https://$EC_KN_HOST.$EC_SUFFIX" -t "$AGENT_ENROLL_TOKEN"
+  if [ "7.13.0" = "$(echo -e 7.13.0\\n$STACK_VERSION | sort -V | head -n1)" ]; then 
+    # 7.13.0 and up
+    ./elastic-agent install -f --url "https://$FLEET_SERVER" -t "$FLEET_TOKEN"
+  else
+    # Below 7.13.0
+    ./elastic-agent install -f -k "https://$EC_KN_HOST.$EC_SUFFIX" -t "$FLEET_TOKEN"
+  fi
+
 }
 
 # Package installer disabled the inline upgrade feature
+# Used for pre 7.10.0
 install_on_Debian() {
 
   # Test if we already added the elastic repository, and add it if not
@@ -102,7 +111,7 @@ install_on_Debian() {
   systemctl stop elastic-agent
 
   # Assuming we use package installation on versions below 7.10.0
-  elastic-agent enroll "https://$EC_KN_HOST.$EC_SUFFIX" "$AGENT_ENROLL_TOKEN" -f
+  elastic-agent enroll "https://$EC_KN_HOST.$EC_SUFFIX" "$FLEET_TOKEN" -f
   
 } # End: install_on_Debian
 
@@ -110,6 +119,7 @@ install_on_Debian() {
 install_on_Ubuntu() { install_on_Debian; }
 
 # Package installer disabled the inline upgrade feature
+# Used for pre 7.10.0
 install_on_CentOS() {
 
   # Test if we already added the elastic repository, and add it if not
@@ -141,7 +151,7 @@ _EOF_
   systemctl stop elastic-agent
 
   # Assuming we use package installation on versions below 7.10.0
-  elastic-agent enroll "https://$EC_KN_HOST.$EC_SUFFIX" "$AGENT_ENROLL_TOKEN" -f
+  elastic-agent enroll "https://$EC_KN_HOST.$EC_SUFFIX" "$FLEET_TOKEN" -f
   
 } # End: install_on_CentOS
 

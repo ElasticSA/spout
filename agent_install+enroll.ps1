@@ -4,7 +4,7 @@
 # "elastic_stack.config":
 # - CLOUD_ID: Elastic Cloud (or ECE) deployment ID to connect to
 # - STACK_VERSION: The version to install. e.g. 7.9.2
-# - AGENT_ENROLL_TOKEN: The Fleet Agent Enroll Token to enroll with
+# - FLEET_TOKEN: The Fleet Agent Enroll Token to enroll with
 # Please create this^ file before running this script 
 
 #
@@ -27,15 +27,17 @@ $config = Get-Content -Path "elastic_stack.config" | Out-String | ConvertFrom-St
 $cloud_info = (b64dec($config.CLOUD_ID.Split(':')[1])).Split('$')
 $es_url = "https://$($cloud_info[1]).$($cloud_info[0].Replace(':9243', ''))"
 $kn_url = "https://$($cloud_info[2]).$($cloud_info[0].Replace(':9243', ''))"
+$flt_url = $config.FLEET_SERVER
 
 $stack_ver = $config.STACK_VERSION
-$agent_token = $config.AGENT_ENROLL_TOKEN
+$fleet_token = $config.FLEET_TOKEN
 
 # Check config variables
 If (
     [string]::IsNullOrWhiteSpace($stack_ver) -or 
     [string]::IsNullOrWhiteSpace($kn_url) -or
-    [string]::IsNullOrWhiteSpace($agent_token)
+    [string]::IsNullOrWhiteSpace($flt_url) -or
+    [string]::IsNullOrWhiteSpace($fleet_token)
 ) {
     Write-Error "Configuration missing" -ErrorAction Stop 
 }
@@ -83,10 +85,10 @@ function install_pre-7-10 ()
     #
     # Install and Enroll agent to ES/Kibana
     $ErrorActionPreference = "Continue" #Ignore STDERR 'errors' 
-    & "$agent_dir\elastic-agent.exe" enroll "$kn_url" "$agent_token" -f
+    & "$agent_dir\elastic-agent.exe" enroll "$kn_url" "$fleet_token" -f
     
     # This means no output, flying blind
-    #Start-Process "$agent_dir\elastic-agent.exe" -ArgumentList @('enroll', $kn_url, $agent_token, '-f' ) -Wait -NoNewWindow
+    #Start-Process "$agent_dir\elastic-agent.exe" -ArgumentList @('enroll', $kn_url, $fleet_token, '-f' ) -Wait -NoNewWindow
     
     #
     # Install the Agent service
@@ -131,8 +133,16 @@ function install_post-7-10 ()
     #
     # Install and Enroll agent to ES/Kibana
     #
-    $ErrorActionPreference = "Continue" #Ignore STDERR output being treated as errors
-    & "$download_dir\elastic-agent-$stack_ver-windows-x86_64\elastic-agent.exe" install -f -k "$kn_url" -t "$agent_token"
+    if ([version]"7.13.0" -le [version]$stack_ver) {
+        # Version 7.13.0 and above with Fleet server
+        $ErrorActionPreference = "Continue" #Ignore STDERR output being treated as errors
+        & "$download_dir\elastic-agent-$stack_ver-windows-x86_64\elastic-agent.exe" install -f --url "$flt_url" -t "$fleet_token"
+    }
+    else {
+        # Below version 7.13.0 
+        $ErrorActionPreference = "Continue" #Ignore STDERR output being treated as errors
+        & "$download_dir\elastic-agent-$stack_ver-windows-x86_64\elastic-agent.exe" install -f -k "$kn_url" -t "$fleet_token"
+    }
     
 
 }

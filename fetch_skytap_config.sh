@@ -28,10 +28,10 @@ VM_CONFIG=$(echo "$SKYTAP_DATA" | jq -r .user_data)
 
 FLEET_TOKEN=
 
-if [ -z $(echo "$ENV_CONFIG" | yq r - agent_enroll_token.${HOSTNAME,,}) ]; then
-    FLEET_TOKEN=$(echo "$ENV_CONFIG" | yq r - agent_enroll_token.linux)
+if [ -z $(echo "$ENV_CONFIG" | yq r - fleet_token.${HOSTNAME,,}) ]; then
+    FLEET_TOKEN=$(echo "$ENV_CONFIG" | yq r - fleet_token.linux)
 else
-    FLEET_TOKEN=$(echo "$ENV_CONFIG" | yq r - agent_enroll_token.${HOSTNAME,,})
+    FLEET_TOKEN=$(echo "$ENV_CONFIG" | yq r - fleet_token.${HOSTNAME,,})
 fi
 
 # Truncate existing
@@ -42,7 +42,8 @@ if [[ "$ENV_CONFIG" == ---* ]]; then
     echo "CLOUD_ID=$(          echo "$ENV_CONFIG" | yq r - cloud_id)"           >>elastic_stack.config
     echo "BEATS_AUTH=$(        echo "$ENV_CONFIG" | yq r - beats_auth)"         >>elastic_stack.config
     echo "BEATS_SETUP_AUTH=$(  echo "$ENV_CONFIG" | yq r - beats_setup_auth)"   >>elastic_stack.config
-    echo "AGENT_ENROLL_TOKEN=${FLEET_TOKEN}" >>elastic_stack.config
+    echo "FLLET_TOKEN=${FLEET_TOKEN}" >>elastic_stack.config
+    echo "FLEET_SERVER=$(      echo "$ENV_CONFIG" | yq r - fleet_server)"       >>elastic_stack.config
 fi
 
 if [[ "$VM_CONFIG" == ---* ]]; then

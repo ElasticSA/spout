@@ -28,11 +28,11 @@ $env_config = ($skytap_data.configuration_user_data | ConvertFrom-yaml)
 $vm_config = ($skytap_data.user_data | ConvertFrom-yaml)
 
 $fleet_token = $Null
-if ([string]::IsNullOrWhiteSpace($env_config.agent_enroll_token.$hostname)) {
-    $fleet_token = $env_config.agent_enroll_token.windows
+if ([string]::IsNullOrWhiteSpace($env_config.fleet_token.$hostname)) {
+    $fleet_token = $env_config.fleet_token.windows
 }
 else {
-    $fleet_token = $env_config.agent_enroll_token.$hostname
+    $fleet_token = $env_config.fleet_token.$hostname
 }
         
 $config = @{
@@ -41,7 +41,8 @@ $config = @{
     BEATS_AUTH         = $env_config.beats_auth;
     BEATS_SETUP_AUTH   = $env_config.beats_setup_auth;
     BEATS_FORCE_SETUP  = $vm_config.beats_force_setup;
-    AGENT_ENROLL_TOKEN = $fleet_token;
+    FLEET_TOKEN        = $fleet_token;
+    FLEET_SERVER       = $env_config.fleet_server;
 }
 
 $config.GetEnumerator() | ForEach-Object { "$($_.Name)=$($_.Value)" } | Out-File -FilePath elastic_stack.config -Encoding utf8 -Force
