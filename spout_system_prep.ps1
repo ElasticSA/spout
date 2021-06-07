@@ -52,9 +52,11 @@ Start-Process -FilePath "$temp_dir\Sysmon64.exe" -WorkingDirectory "$temp_dir" -
 #Remove-Item -Path $temp_dir -Recurse -Force -ErrorAction SilentlyContinue
 echo "Sysmon Installation Complete"
 
-if ((Get-Command python.exe -ErrorAction SilentlyContinue) -And (Get-Command pip.exe -ErrorAction SilentlyContinue)) {
-    & pip install requests pyyaml
-}
+try {
+    if ((Get-Command python.exe -ErrorAction SilentlyContinue) -And (Get-Command pip.exe -ErrorAction SilentlyContinue)) {
+        & pip install requests pyyaml
+    }
+} catch {}
 
 # Mostly disable Windows Defender
 Set-MpPreference -DisableArchiveScanning $True `
@@ -96,8 +98,8 @@ $trigger =  New-ScheduledTaskTrigger -AtStartup -RandomDelay 00:01:30
 $settings = New-ScheduledTaskSettingsSet `
     -ExecutionTimeLimit 00:20:00 -RestartCount 3 -RestartInterval 00:01:00
 
-Unregister-ScheduledTask -TaskName "ec_spout_beats_startup" -ErrorAction SilentlyContinue
-Unregister-ScheduledTask -TaskName "spout_beats_startup" -ErrorAction SilentlyContinue
+Unregister-ScheduledTask -TaskName "ec_spout_beats_startup" -Confirm $false -ErrorAction SilentlyContinue
+Unregister-ScheduledTask -TaskName "spout_beats_startup" -Confirm $false -ErrorAction SilentlyContinue
 Register-ScheduledTask -Force `
     -TaskName "spout_beats_startup" -Description "ElasticSA Spout: Initialise all beats at startup" `
     -Action $action -Trigger $trigger -Settings $settings -User "System"
@@ -110,8 +112,8 @@ $trigger =  New-ScheduledTaskTrigger -AtStartup -RandomDelay 00:01:30
 $settings = New-ScheduledTaskSettingsSet `
     -ExecutionTimeLimit 00:20:00 -RestartCount 3 -RestartInterval 00:01:00
 
-Unregister-ScheduledTask -TaskName "ec_spout_agent_startup" -ErrorAction SilentlyContinue
-Unregister-ScheduledTask -TaskName "spout_agent_startup" -ErrorAction SilentlyContinue
+Unregister-ScheduledTask -TaskName "ec_spout_agent_startup" -Confirm $false -ErrorAction SilentlyContinue
+Unregister-ScheduledTask -TaskName "spout_agent_startup" -Confirm $false -ErrorAction SilentlyContinue
 Register-ScheduledTask -Force `
     -TaskName "spout_agent_startup" -Description "Elastic Cloud Spout: Initialise agent at startup" `
     -Action $action -Trigger $trigger -Settings $settings -User "System" 
@@ -125,7 +127,7 @@ $trigger.Delay = 'PT5M'
 $settings = New-ScheduledTaskSettingsSet `
     -ExecutionTimeLimit 01:30:00 -RestartCount 2 -RestartInterval 00:05:00
 
-Unregister-ScheduledTask -TaskName "spout_rta_startup" -ErrorAction SilentlyContinue
+Unregister-ScheduledTask -TaskName "spout_rta_startup" -Confirm $false -ErrorAction SilentlyContinue
 Register-ScheduledTask -Force `
     -TaskName "spout_rta_startup" -Description "Elastic Cloud Spout: Initialise RTA TTP execution" `
     -Action $action -Trigger $trigger -Settings $settings -User "System" 

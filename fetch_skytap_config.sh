@@ -35,6 +35,7 @@ else
 fi
 
 # Workaround for agent default port behaviour, use explicit ports in URL to avoid
+FLEET_SERVER=$(echo "$ENV_CONFIG" | yq r - fleet_server)
 if ! echo $FLEET_SERVER | grep -Eq ':[0-9]+$'; then
     FLEET_SERVER="$FLEET_SERVER:443"
 fi
