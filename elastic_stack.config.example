@@ -1,7 +1,7 @@
 # This is an example of the elastic_stack.config file that these scripts read from
 
 # the version to install
-STACK_VERSION=7.9.3
+STACK_VERSION=7.13.1
 
 # Easily copyable from cloud.elastic.co
 #  (or can be generated for on-prem/vpc installations)
@@ -15,4 +15,8 @@ BEATS_AUTH=beats_ingest:Qwerty123!
 BEATS_SETUP_AUTH=beats_setup_auth:Qwerty123!
 
 # Token used to enroll Elastic Agent 
-AGENT_ENROLL_TOKEN=SGVsbG8gV29ybGQhCg==
+FLEET_TOKEN=SGVsbG8gV29ybGQhCg==
+
+# Fleet server URL to enroll to (Post 7.13.0)
+# (Pre 7.13.0 the Kibana URL from the Cloud ID will be used)
+FLEET_SERVER=https://fleet_server1.example.com

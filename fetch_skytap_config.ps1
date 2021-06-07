@@ -34,7 +34,13 @@ if ([string]::IsNullOrWhiteSpace($env_config.fleet_token.$hostname)) {
 else {
     $fleet_token = $env_config.fleet_token.$hostname
 }
-        
+
+# Workaround for agent default port behaviour, use explicit ports in URL to avoid
+$fleet_server = $env_config.fleet_server
+if ($fleet_server -notmatch ':\d+$') {
+    $fleet_server = "${fleet_server}:443"
+}
+
 $config = @{
     STACK_VERSION      = $env_config.stack_version;
     CLOUD_ID           = $env_config.cloud_id;
@@ -42,7 +48,7 @@ $config = @{
     BEATS_SETUP_AUTH   = $env_config.beats_setup_auth;
     BEATS_FORCE_SETUP  = $vm_config.beats_force_setup;
     FLEET_TOKEN        = $fleet_token;
-    FLEET_SERVER       = $env_config.fleet_server;
+    FLEET_SERVER       = $fleet_server;
 }
 
 $config.GetEnumerator() | ForEach-Object { "$($_.Name)=$($_.Value)" } | Out-File -FilePath elastic_stack.config -Encoding utf8 -Force

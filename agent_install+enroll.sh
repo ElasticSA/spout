@@ -75,10 +75,10 @@ install_on_Generic() {
   # Assuming we use install_on_Generic for 7.10.0 and up
   cd $AGENT_PAC
   if [ "7.13.0" = "$(echo -e 7.13.0\\n$STACK_VERSION | sort -V | head -n1)" ]; then 
-    # 7.13.0 and up
-    ./elastic-agent install -f --url "https://$FLEET_SERVER" -t "$FLEET_TOKEN"
+    echo "INSTALLING 7.13.0 and up (with Fleet server)"
+    ./elastic-agent install -f --url "$FLEET_SERVER" -t "$FLEET_TOKEN"
   else
-    # Below 7.13.0
+    echo "INSTALLING below 7.13.0"
     ./elastic-agent install -f -k "https://$EC_KN_HOST.$EC_SUFFIX" -t "$FLEET_TOKEN"
   fi
 
@@ -164,10 +164,10 @@ install_on_RHEL() { install_on_CentOS; }
 
 INST_TARGET=''
 if [ "7.10.0" = "$(echo -e 7.10.0\\n$STACK_VERSION | sort -V | head -n1)" ]; then 
-  # 7.10.0 and up
+  echo "INSTALLING 7.10.0 and up"
   INST_TARGET=Generic
 else
-  # Below 7.10.0
+  echo "INSTALLING below 7.10.0"
   INST_TARGET=$(lsb_release -is)
 fi
 

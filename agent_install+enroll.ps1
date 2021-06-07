@@ -47,7 +47,7 @@ function install_pre-7-10 ()
     echo "--- Installing pre-7.10.0 ---"
 
     # Prepare some common used strings
-    $agent_zip = "elastic-agent-$stack_ver-windows-x86_64.zip"
+    $agent_zip = "elastic-agent-${stack_ver}-windows-x86_64.zip"
     $agent_zip_url = "https://artifacts.elastic.co/downloads/beats/elastic-agent/$agent_zip"
     $agent_dir = "C:\Program Files\Elastic\Agent\$stack_ver"
     $download_dir = "C:\ProgramData\Elastic\Downloads"
@@ -80,7 +80,7 @@ function install_pre-7-10 ()
 
     # Unpack
     Expand-Archive -Path "$download_dir\$agent_zip" -DestinationPath "C:\Program Files\Elastic\Agent" -Force
-    Rename-Item -Path "C:\Program Files\Elastic\Agent\elastic-agent-$stack_ver-windows-x86_64" -NewName "$stack_ver" -Force
+    Rename-Item -Path "C:\Program Files\Elastic\Agent\elastic-agent-${stack_ver}-windows-x86_64" -NewName "$stack_ver" -Force
     
     #
     # Install and Enroll agent to ES/Kibana
@@ -101,7 +101,7 @@ function install_post-7-10 ()
     echo "--- Installing 7.10.0 and/or above ---"
 
     # Prepare some common used strings
-    $agent_zip = "elastic-agent-$stack_ver-windows-x86_64.zip"
+    $agent_zip = "elastic-agent-${stack_ver}-windows-x86_64.zip"
     $agent_zip_url = "https://artifacts.elastic.co/downloads/beats/elastic-agent/$agent_zip"
     #$agent_dir = "C:\Program Files\Elastic\Agent\$stack_ver"
     $download_dir = "C:\ProgramData\Elastic\Downloads"
@@ -136,12 +136,12 @@ function install_post-7-10 ()
     if ([version]"7.13.0" -le [version]$stack_ver) {
         # Version 7.13.0 and above with Fleet server
         $ErrorActionPreference = "Continue" #Ignore STDERR output being treated as errors
-        & "$download_dir\elastic-agent-$stack_ver-windows-x86_64\elastic-agent.exe" install -f --url "$flt_url" -t "$fleet_token"
+        & "$download_dir\elastic-agent-${stack_ver}-windows-x86_64\elastic-agent.exe" install -f --url "$flt_url" -t "$fleet_token"
     }
     else {
         # Below version 7.13.0 
         $ErrorActionPreference = "Continue" #Ignore STDERR output being treated as errors
-        & "$download_dir\elastic-agent-$stack_ver-windows-x86_64\elastic-agent.exe" install -f -k "$kn_url" -t "$fleet_token"
+        & "$download_dir\elastic-agent-${stack_ver}-windows-x86_64\elastic-agent.exe" install -f -k "$kn_url" -t "$fleet_token"
     }
     
 
