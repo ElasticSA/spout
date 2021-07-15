@@ -2,6 +2,8 @@
 # Utility functions
 #
 
+$ProgressPreference = 'SilentlyContinue'
+
 function b64dec ([string]$str)
 {
     return [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($str))
@@ -16,6 +18,8 @@ function b64enc ([string]$str)
 function download_file ([string]$url, [string]$dest, [bool]$check=$True)
 {
     $timeout = 120
+    #https://stackoverflow.com/questions/28682642/powershell-why-is-using-invoke-webrequest-much-slower-than-a-browser-download
+    $ProgressPreference = 'SilentlyContinue'
     
     do {
         $fail = $False
@@ -39,8 +43,11 @@ function download_file ([string]$url, [string]$dest, [bool]$check=$True)
         
         If ($check -And -Not $fail) {
             Write-Output "--- Checking hash ---"
+            Write-Output " - A -"
             $hashA = (Get-Content -Path "${dest}.sha512").Split(' ')[0]
+            Write-Output " - B -"
             $hashB = (Get-FileHash -Algorithm SHA512 -Path "$dest").hash
+            Write-Output " - C -"
             if ($hashA -ne $hashB) {
                 Remove-Item -Path "$dest" -Force -EA Ignore
                 Remove-Item -Path "${dest}.sha512" -Force -EA Ignore

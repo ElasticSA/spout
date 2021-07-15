@@ -19,7 +19,7 @@ ForEach ($b in @('metricbeat', 'winlogbeat', 'packetbeat') ) {
     
     & .\beats_install.ps1 "$b" $config.STACK_VERSION
     Stop-Service -Name "$b"
-    Set-Service -Name "$b" -StartupType Manual
+    #Set-Service -Name "$b" -StartupType Manual
 
     & .\beats_configure.ps1 "$b"
     Restart-Service -Name "$b" -Force
