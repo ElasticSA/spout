@@ -15,14 +15,16 @@ Start-Transcript -Path spout_beats_startup.log -Append
 
 $config = Get-Content -Path "elastic_stack.config" | Out-String | ConvertFrom-StringData
 
-ForEach ($b in @('metricbeat', 'winlogbeat', 'packetbeat') ) {
-    
-    & .\beats_install.ps1 "$b" $config.STACK_VERSION
-    Stop-Service -Name "$b"
-    #Set-Service -Name "$b" -StartupType Manual
+If ( $config.STACK_VERSION -And $config.BEATS_AUTH ) {
+    ForEach ($b in @('metricbeat', 'winlogbeat', 'packetbeat') ) {
+        
+        & .\beats_install.ps1 "$b" $config.STACK_VERSION
+        Stop-Service -Name "$b"
+        #Set-Service -Name "$b" -StartupType Manual
 
-    & .\beats_configure.ps1 "$b"
-    Restart-Service -Name "$b" -Force
+        & .\beats_configure.ps1 "$b"
+        Restart-Service -Name "$b" -Force
+    }
 }
 
 Stop-Transcript 

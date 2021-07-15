@@ -24,15 +24,19 @@ done
 
 . ./elastic_stack.config
 
-for B in metricbeat auditbeat filebeat packetbeat; do
+if [ -n "$STACK_VERSION" -a -n "$BEATS_AUTH" ]; then
 
-  echo "$(date) Installing $B ($STACK_VERSION)"
-  ./beats_install.sh $B $STACK_VERSION || _fail "Installing $B failed!"
+    for B in metricbeat auditbeat filebeat packetbeat; do
 
-  echo "$(date) Initialising $B ($STACK_VERSION)"
-  ./beats_configure.sh $B
-  
-  echo "$(date) Starting $B ($STACK_VERSION)"
-  systemctl restart "$B"
-  
-done
+        echo "$(date) Installing $B ($STACK_VERSION)"
+        ./beats_install.sh $B $STACK_VERSION || _fail "Installing $B failed!"
+
+        echo "$(date) Initialising $B ($STACK_VERSION)"
+        ./beats_configure.sh $B
+        
+        echo "$(date) Starting $B ($STACK_VERSION)"
+        systemctl restart "$B"
+    
+    done
+
+fi
