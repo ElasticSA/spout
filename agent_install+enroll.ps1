@@ -113,6 +113,8 @@ function install_post-7-10 ()
     If (Test-Path -Path "C:\Program Files\Elastic\Agent\elastic-agent.exe") {
         echo "Uninstalling existing"
 
+	# Ignore failed uninstall
+	$ErrorActionPreference = "Continue"
         & "C:\Program Files\Elastic\Agent\elastic-agent.exe" uninstall -f
 
         # ElasticEndpoint can be left running (not uninstalled), so we'll uninstall it here...
@@ -122,6 +124,8 @@ function install_post-7-10 ()
             Start-Sleep -s 1
             $service.delete()
         }
+
+	$ErrorActionPreference = "Stop"
     }
 
 

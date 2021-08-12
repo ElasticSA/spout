@@ -69,7 +69,7 @@ install_on_Generic() {
   tar zxvf "${AGENT_PAC}.tar.gz"
   
   if [ "$1" = "remove" ]; then
-    /usr/bin/elastic-agent uninstall -f
+    /usr/bin/elastic-agent uninstall -f || true #Ignore failure
   fi
   
   # Assuming we use install_on_Generic for 7.10.0 and up
@@ -84,7 +84,7 @@ install_on_Generic() {
 
 }
 
-# Package installer disabled the inline upgrade feature
+# Package installer disables the inline upgrade feature
 # Used for pre 7.10.0
 install_on_Debian() {
 
